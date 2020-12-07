@@ -1,0 +1,558 @@
+<%- include('partials/header') -%>
+
+<% if (flavor == 'mobile') { %>
+
+<% } else {%> 
+    <%- include('partials/pageMenu') -%>
+<%}%> 
+
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<div id="map_container"></div>
+
+<!-- container for map buttons -->
+<div id="map_buttons" class="input-group" >
+    <button type="button" class="btn btn-secondary btn-sm" id="zoom_reset" data-toggle="tooltip" data-placement="bottom" title="Reset Position and Zoom"><span class="fas fa-expand" aria-hidden="true"></span></button>
+    <button type="button" class="btn btn-secondary btn-sm" id="center" data-toggle="tooltip" data-placement="bottom" title="Center the Map"><span class="fas fa-compress-arrows-alt" aria-hidden="true"></span></button>
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" data-placement="bottom" title="Select Region" aria-haspopup="true" aria-expanded="false">
+            <span class="far fa-map" aria-hidden="true"></span>
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="dropdown_select">
+          <!-- <a class="dropdown-item" href="#">Action</a> -->
+        </div>
+    </div>
+    <% if (flavor == 'mobile') { %>
+        <a class="btn btn-secondary btn-sm" href="/dashboard/region?id=<%= query %>" role="button" data-toggle="tooltip" data-placement="bottom" title="Return to Desktop Version"><span class="fas fa-desktop" aria-hidden="true"></span></a>
+    <% } else {%> 
+        <a class="btn btn-secondary btn-sm" href="/dashboard/region?id=<%= query %>&flavor=mobile" role="button" data-toggle="tooltip" data-placement="bottom" title="Open Clean Window for Mobiles"><span class="fas fa-tablet-alt" aria-hidden="true"></span></a>
+    <%}%>   
+    <a id="chat-toggle" class="btn btn-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show socket.io chat"><span class="far fa-comment-alt" aria-hidden="true"></span></a>
+    <a id="array_dump" class="btn btn-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show message array"><span class="fas fa-layer-group" aria-hidden="true"></span></a>
+</div>
+
+<!-- container for message chat -->
+<div id="map_socket" class="input-group row row-cols" style="display:none; background-color: #191d21; border-color: darkgray; border-style: solid; border-width: 1px;">
+    <div class="col">
+        <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Messages</span>
+            </div>
+            <textarea id="messages" class="form-control" aria-label="With textarea" rows="10"></textarea>
+        </div>
+        <div class="input-group mb-3">
+            <form id="chat" action="">
+                <input id="m" type="text" class="form-control" placeholder="message" aria-label="message" aria-describedby="button-addon2">
+                <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- container for side bar -->
+<div id="mySidenav" class="sidenav">
+    <form id="report" action="">
+        <button type="button" class="close" aria-label="Close">
+            <span id="menu-toggle" aria-hidden="true">&times;</span>
+        </button>
+        <br>
+        <br>
+        <h5>Report Enemy</h5>
+        <hr>
+        <h6 id="report_systemname"></h6>
+        <br>
+        <div class="input-group input-group-sm">
+            <div class="input-group-prepend input-group-sm">
+                <span class="input-group-text input-group-sm"><span style="width: 16px; height: 16px;" class="fas fa-question" aria-hidden="true"></span></span>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_unknown_count', 'sub', 10);">-10</a>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_unknown_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+            </div>
+            <input id="report_unknown_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
+            <div class="input-group-append input-group-sm">
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_unknown_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_unknown_count', 'add', 10);">+10</a>
+            </div>
+        </div>
+        <div class="input-group input-group-sm">
+            <div class="input-group-prepend input-group-sm">
+                <span class="input-group-text input-group-sm"><img src="/media/frigate.png"></span></span>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_frigate_count', 'sub', 10);">-10</a>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_frigate_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+            </div>
+            <input id="report_frigate_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
+            <div class="input-group-append input-group-sm">
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_frigate_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_frigate_count', 'add', 10);">+10</a>
+            </div>
+        </div>
+        <div class="input-group input-group-sm">
+            <div class="input-group-prepend input-group-sm">
+                <span class="input-group-text input-group-sm"><img src="/media/destroyer.png"></span></span>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_destroyer_count', 'sub', 10);">-10</a>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_destroyer_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+            </div>
+            <input id="report_destroyer_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
+            <div class="input-group-append input-group-sm">
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_destroyer_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_destroyer_count', 'add', 10);">+10</a>
+            </div>
+        </div>
+        <div class="input-group input-group-sm">
+            <div class="input-group-prepend input-group-sm">
+                <span class="input-group-text input-group-sm"><img src="/media/cruiser.png"></span></span>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_cruiser_count', 'sub', 10);">-10</a>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_cruiser_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+            </div>
+            <input id="report_cruiser_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
+            <div class="input-group-append input-group-sm">
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_cruiser_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_cruiser_count', 'add', 10);">+10</a>
+            </div>
+        </div>
+        <div class="input-group input-group-sm">
+            <div class="input-group-prepend input-group-sm">
+                <span class="input-group-text input-group-sm"><img src="/media/battlecruiser.png"></span></span>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bc_count', 'sub', 10);">-10</a>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bc_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+            </div>
+            <input id="report_bc_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
+            <div class="input-group-append input-group-sm">
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bc_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bc_count', 'add', 10);">+10</a>
+            </div>
+        </div>
+        <div class="input-group input-group-sm">
+            <div class="input-group-prepend input-group-sm">
+                <span class="input-group-text input-group-sm"><img src="/media/battleship.png"></span></span>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bs_count', 'sub', 10);">-10</a>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bs_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+            </div>
+            <input id="report_bs_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
+            <div class="input-group-append input-group-sm">
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bs_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bs_count', 'add', 10);">+10</a>
+            </div>
+        </div>
+        <div class="input-group input-group-sm">
+            <div class="input-group-prepend input-group-sm">
+                <span class="input-group-text input-group-sm"><img src="/media/miningbarge.png"></span></span>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_barge_count', 'sub', 10);">-10</a>
+                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_barge_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+            </div>
+            <input id="report_barge_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
+            <div class="input-group-append input-group-sm">
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_barge_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_barge_count', 'add', 10);">+10</a>
+            </div>
+        </div>
+        <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+            <span class="input-group-text" style="width: 34px">@</span>
+            </div>
+            <input id="report_location" type="text" class="form-control" placeholder="optional: e.g gate; planet 5" aria-label="location" aria-describedby="">
+        </div>
+        <br>
+        <div class="input-group input-group-sm">
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="report_gatecamp">
+                <label class="custom-control-label" for="report_gatecamp"><img src="/media/stargate.png"> Gate Camp</label>
+            </div>
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="report_bubble">
+                <label class="custom-control-label" for="report_bubble"><img src="/media/bubble.png"> Bubble involved</label>
+            </div>
+        </div>
+        <br>
+        <div class="input-group input-group-sm justify-content-center">
+            <!-- <a id="report_send" class="btn btn-outline-light btn-sm" href="#" role="button"><span class="fas fa-bullhorn" aria-hidden="true"> Send Report</span></a> -->
+            <button class="btn btn-outline-secondary" type="submit" id="report_send">Send</button>
+        </div>
+    </form>
+
+</div>
+
+<!-- container for tooltip -->
+
+
+<!-- container for popover -->
+
+
+<script>
+
+// Form handling
+function changeValue(id, operator, value){
+    if (operator == "sub"){
+        current_value = parseInt(document.getElementById(id).value);
+        if (isNaN(current_value)){
+            new_value = 0 - parseInt(value);
+            if (new_value > 0){
+                document.getElementById(id).value = parseInt(new_value);
+            } else {
+                document.getElementById(id).value = 0;
+            }
+        } else {
+            new_value = current_value - parseInt(value);
+            if (new_value > 0){
+                document.getElementById(id).value = parseInt(new_value);
+            } else {
+                document.getElementById(id).value = 0;
+            }
+        }
+    }
+    if (operator == "add"){
+        current_value = parseInt(document.getElementById(id).value);
+        if (isNaN(current_value)){
+            new_value = 0 + parseInt(value);
+            document.getElementById(id).value = parseInt(new_value);
+        } else {
+            new_value = current_value + parseInt(value);
+            document.getElementById(id).value = parseInt(new_value);
+        }
+    }    
+}
+
+$(function() {
+
+    // gloabal variables
+    var socket = io();
+    var DateTime = luxon.DateTime;
+    var alert_data =[];
+    var uid = "<%= discordId %>";
+    var zoomTrans = {x:0, y:0, scale:1};
+    var w = $('#map_container').width();
+    var h = $('#map_container').height();
+    var max_out = 0.2;
+    var max_in = 2;
+
+    // Load SVG
+    var xml = d3.xml('/media/<%= query %>.svg').mimeType('image/svg+xml').get(function(error, data) {
+        if (error) throw error;
+
+        // Append SVG content to container
+        d3.select('#map_container').node().append(data.documentElement);
+
+        // SVG selector
+        var svg = d3.select('svg');
+        var svg_w = svg.attr('data-width');
+        var svg_h = svg.attr('data-height');
+
+        // G selector
+        var rect = d3.select('rect');
+
+        // getting coords for solar system adjustments during click
+
+
+        rect.on('click', function(){
+            x = (d3.event.x - zoomTrans.x)/zoomTrans.scale;
+            y = (d3.event.y - zoomTrans.y)/zoomTrans.scale;
+            console.log('x: ' +  x + 'y: '+  y);
+
+            // close popovers
+            $('circle[data-node-type="solar_system"]').popover('hide');
+            // close sidemenu
+            $("#mySidenav").animate({right: '-250px'});
+        })
+
+        // Color DEVLE
+        d3.selectAll('[data-node-region="10000060"]')
+            .style("fill", "#1b75bc");
+
+        // build text boxes
+        var text = [];
+        d3.selectAll('.solar_label > text').attr('x', function(d,i){
+            text.push({text:d, pos:i, el: d3.select(this)});
+            return d3.select(this).attr('x');
+        });
+        d3.selectAll('.solar_label').data(text).insert('rect',":first-child")
+            .attr('x', function(d){ return d.el.node().getBBox().x - 5})
+            .attr('y', function(d){return d.el.node().getBBox().y })
+            .attr('width', function(d){return d.el.node().getBBox().width + 10})
+            .attr('height', function(d){return d.el.node().getBBox().height })
+            .style('stroke', 'gray').style('fill', '#000000').style("fill-opacity", 0.5);
+
+        // popover handling
+        $('circle[data-node-type="solar_system"]')
+        .popover({ trigger: 'manual', container: 'body', placement:'bottom', title: '', content:'dummy', html: true, sanitize: false, template : '<div class="popover" role="tooltip"><div class="arrow"></div><div class="popover-body"></div></div>'})
+        .tooltip({ trigger: 'manual', container: 'body', placement:'top', title:'dummy', html: true, sanitize: false, template : `<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>`});
+        $('circle[data-node-type="solar_system"]').attr("data-content", '<div class="d-flex justify-content-center"><a id="open_report" class="btn btn-warning btn-sm"  style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a></div><br>');
+
+        // Circle Onclick handling
+        $('circle[data-node-type="solar_system"]').on('click', function(){
+            $("#report_systemname").html("System: " + $(this).attr("data-node-name") + " (" + $(this).attr("data-node-sec") + ")");
+            $("#report_systemname").removeClass();
+            $("#report_systemname").addClass("null-sec");
+            $("#report_systemname").attr("data-node-id", $(this).attr("data-node-id"));
+            $("#report_systemname").attr("data-node-name", $(this).attr("data-node-name"));
+
+            // refresh sidebar
+            // $("#mySidenav").animate({right: '-250px'});
+            // $("#mySidenav").animate({right: '0px'});
+
+            // popover handling
+            $('circle[data-node-type="solar_system"]').popover('hide');
+            $(this).popover('show');
+        });
+
+        //socket.io for SVG clicks
+        //delegate click event from the document as popovers are created dynamically and have initially no events bound - https://stackoverflow.com/questions/54618503/how-to-click-on-a-link-inside-the-data-content-of-a-pop-over
+        $(document).on("click", "#open_report", function(event) {
+            event.preventDefault();
+            $("#mySidenav").animate({right: '0px'});
+        });
+        $(document).on("click", "#delete_report", function(event) {
+            event.preventDefault();
+            socket.emit('DEL_MSG', $(this).attr("data-msg-id"));
+            nodeid = $(this).attr("data-node-id");
+            $('circle[data-node-id="' + nodeid + '"]').tooltip('hide');
+            $('circle[data-node-id="' + nodeid + '"]').tooltip('show');
+
+
+            $('circle[data-node-type="solar_system"]').popover('hide');
+            
+        });
+
+        // Zoom handling - https://www.freecodecamp.org/news/get-ready-to-zoom-and-pan-like-a-pro-after-reading-this-in-depth-tutorial-5d963b0a153e/
+        var k = 0;
+        g = svg.select('g');
+        var zoom = d3.zoom()
+            .scaleExtent([max_out, max_in])                            // Zoom Range
+            .on('zoom', function(){
+                g.attr('transform', d3.event.transform);                                    // apply zoom to <g>
+                zoomTrans.x = d3.event.transform.x;
+                zoomTrans.y = d3.event.transform.y;
+                zoomTrans.scale = d3.event.transform.k;                                    // save current zoom level
+
+                // update popover and tooltip positions during zoom and pan
+                $('[data-node-type="solar_system"]').popover('update');
+                $('[data-node-type="solar_system"]').tooltip('update');
+            });
+        svg.call(zoom);
+        svg.on("dblclick.zoom", null); // deaktivate doubleclick
+        
+        // initial centering
+        var trans_x = (w - (svg_w)*max_out)/2; 
+        var trans_y = (h - (svg_h)*max_out)/2;
+        svg.transition()
+            .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(max_out));
+
+        // Reset zoom
+        $('#zoom_reset').click(() => {
+            trans_x = (w - (svg_w)*max_out)/2; 
+            trans_y = (h - (svg_h)*max_out)/2;
+            svg.transition()
+                .duration(750)
+                .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(max_out));
+        });
+
+        // Center
+        $('#center').click(() => {
+            trans_x = (w - (svg_w)*current_scale)/2; 
+            trans_y = (h - (svg_h)*current_scale)/2;
+            svg.transition()
+                .duration(750)
+                .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(current_scale));
+        });
+
+        // positon map buttons
+        svg_coords = $('svg').position();
+        $("#map_buttons").css({top: svg_coords.top + 10, left: svg_coords.left + 10, position:'absolute'});
+        $("#map_socket").css({top: svg_coords.top + 50, left: svg_coords.left, position:'absolute'});
+        $( window ).on( "orientationchange", function() {
+            svg_coords = $('svg').position();
+            $("#map_buttons").css({top: svg_coords.top + 10, left: svg_coords.left + 10, position:'absolute'});
+            $("#map_socket").css({top: svg_coords.top + 50, left: svg_coords.left, position:'absolute'}); 
+        });
+
+        // toggle chat
+        $("#chat-toggle").click(function(){
+            $("#map_socket").slideToggle("slow");
+        });
+
+        // dump array
+        $("#array_dump").click(function(){
+            console.log(alert_data);
+        });
+
+        // toggle Side menu
+        $("#menu-toggle").click(function(){
+            right = $("#mySidenav").css("right");
+            if (right == "0px"){
+                $("#mySidenav").animate({right: '-250px'});
+            } else {
+                $("#mySidenav").animate({right: '0px'});
+            }
+        });
+
+        
+
+    });
+
+    // assign tool tip to buttons
+    $('button').tooltip();
+    $('[role=button]').tooltip();
+
+    
+    // fill dropdown
+    regions = [{"id":10000001,"name":"Derelik"},{"id":10000002,"name":"The Forge"},{"id":10000003,"name":"Vale of the Silent"},{"id":10000004,"name":"UUA-F4"},{"id":10000005,"name":"Detorid"},{"id":10000006,"name":"Wicked Creek"},{"id":10000007,"name":"Cache"},{"id":10000008,"name":"Scalding Pass"},{"id":10000009,"name":"Insmother"},{"id":10000010,"name":"Tribute"},{"id":10000011,"name":"Great Wildlands"},{"id":10000012,"name":"Curse"},{"id":10000013,"name":"Malpais"},{"id":10000014,"name":"Catch"},{"id":10000015,"name":"Venal"},{"id":10000016,"name":"Lonetrek"},{"id":10000017,"name":"J7HZ-F"},{"id":10000018,"name":"The Spire"},{"id":10000019,"name":"A821-A"},{"id":10000020,"name":"Tash-Murkon"},{"id":10000021,"name":"Outer Passage"},{"id":10000022,"name":"Stain"},{"id":10000023,"name":"Pure Blind"},{"id":10000025,"name":"Immensea"},{"id":10000027,"name":"Etherium Reach"},{"id":10000028,"name":"Molden Heath"},{"id":10000029,"name":"Geminate"},{"id":10000030,"name":"Heimatar"},{"id":10000031,"name":"Impass"},{"id":10000032,"name":"Sinq Laison"},{"id":10000033,"name":"The Citadel"},{"id":10000034,"name":"The Kalevala Expanse"},{"id":10000035,"name":"Deklein"},{"id":10000036,"name":"Devoid"},{"id":10000037,"name":"Everyshore"},{"id":10000038,"name":"The Bleak Lands"},{"id":10000039,"name":"Esoteria"},{"id":10000040,"name":"Oasa"},{"id":10000041,"name":"Syndicate"},{"id":10000042,"name":"Metropolis"},{"id":10000043,"name":"Domain"},{"id":10000044,"name":"Solitude"},{"id":10000045,"name":"Tenal"},{"id":10000046,"name":"Fade"},{"id":10000047,"name":"Providence"},{"id":10000048,"name":"Placid"},{"id":10000049,"name":"Khanid"},{"id":10000050,"name":"Querious"},{"id":10000051,"name":"Cloud Ring"},{"id":10000052,"name":"Kador"},{"id":10000053,"name":"Cobalt Edge"},{"id":10000054,"name":"Aridia"},{"id":10000055,"name":"Branch"},{"id":10000056,"name":"Feythabolis"},{"id":10000057,"name":"Outer Ring"},{"id":10000058,"name":"Fountain"},{"id":10000059,"name":"Paragon Soul"},{"id":10000060,"name":"Delve"},{"id":10000061,"name":"Tenerifis"},{"id":10000062,"name":"Omist"},{"id":10000063,"name":"Period Basis"},{"id":10000064,"name":"Essence"},{"id":10000065,"name":"Kor-Azor"},{"id":10000066,"name":"Perrigen Falls"},{"id":10000067,"name":"Genesis"},{"id":10000068,"name":"Verge Vendor"},{"id":10000069,"name":"Black Rise"}];
+    regions.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));  // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
+    for(i in regions)
+    {
+        //creates option tag <a class="dropdown-item" href="#">Action</a>
+        $('<a class="dropdown-item"></a>').attr("href","/dashboard/region?id="+regions[i].id).html(regions[i].name).appendTo('#dropdown_select'); 
+    }
+
+
+    // SOCKET.io Handling ----------------------------------------------------------------------------------------
+    socket.emit('GET_MSG_ALL', '');                                             // inital request to send all messages
+
+    function updateData(msg){
+        for (i in msg){
+            alert_data.push(msg[i]);                // push all to array of alerts                       
+
+            $('#messages').append(JSON.stringify(msg[i]) + "\n");           // chat
+
+            // Sum Calculation
+            const sum_number = alert_data                                           // https://stackoverflow.com/questions/52038271/how-to-sum-values-in-typescript-array-based-on-array-items-property
+                    .filter(item => item.message.id === msg[i].message.id)
+                    .reduce((sum, current) => sum + current.message.number, 0);
+            
+            // Time Calculation
+            var changed =  DateTime.fromISO(msg[i].dateChanged).toRelative({ unit: "minutes", locale: "en" });
+            var changed_small = changed.split(" ");
+            var changed_final = changed_small[0] + "m " + changed_small[2];
+
+            // tooltip updates (showing and data)
+            var title = '<span class="text-danger font-weight-bolder">' + sum_number +'</span><span style="font-size: 10px"> (' + changed_final +')</span>';
+            $('circle[data-node-id="' + msg[i].message.id + '"]').attr("data-original-title", title);
+            $('circle[data-node-id="' + msg[i].message.id + '"]').tooltip('show');
+
+            // popover updates (data)
+            var content = $('circle[data-node-id="' + msg[i].message.id + '"]').attr("data-content");
+            content = content + '<div class="container border border-dark"><div class="row">';
+            content = content + '<div class="col-auto">';
+            if (msg[i].message.gatecamp == true) {
+                content = content + '<span class="text-warning font-weight-bolder">!!! </span><img src="/media/stargate.png"> ';
+            }
+            if (msg[i].message.bubble == true) {
+                content = content + '<span class="text-warning font-weight-bolder">!!! </span><img src="/media/bubble.png"> ';
+            }
+            if (msg[i].message.shiptype.u > 0) {
+                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.u + 'x</span><span style="width: 16px; height: 16px;" class="fas fa-question" aria-hidden="true"></span> ';
+            }
+            if (msg[i].message.shiptype.f > 0) {
+                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.f + 'x</span><img src="/media/frigate.png"> ';
+            }
+            if (msg[i].message.shiptype.d > 0) {
+                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.d + 'x</span><img src="/media/destroyer.png"> ';
+            }
+            if (msg[i].message.shiptype.c > 0) {
+                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.c + 'x</span><img src="/media/cruiser.png"> ';
+            }
+            if (msg[i].message.shiptype.bc > 0) {
+                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.bc + 'x</span><img src="/media/battlecruiser.png"> ';
+            }
+            if (msg[i].message.shiptype.bs > 0) {
+                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.bs + 'x</span><img src="/media/battleship.png"> ';
+            }
+            if (msg[i].message.shiptype.i > 0) {
+                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.i + 'x</span><img src="/media/miningbarge.png"> ';
+            }
+            if (msg[i].message.loc.length > 0) {
+                content = content + '<span class="text-primary font-weight-bolder">@' + msg[i].message.loc + '</span> ';
+            }
+            content = content + '</div></div><div class="row"><div class="col-auto d-flex justify-content-start">';
+            content = content + '<img src="https://cdn.discordapp.com/avatars/<%= discordId %>/<%= avatar %>.png" width="20" height="20" class="rounded-circle" alt="<%= username %>#<%= discriminator %>" loading="lazy" data-toggle="tooltip" data-placement="bottom" title="<%= username %>#<%= discriminator %>"> ';
+            content = content + '&nbsp;(' + changed_final + ') ';
+            content = content + '</div><div class="col d-flex justify-content-end">';
+            content = content + '<a id="edit_report" class="btn btn-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Edit Report"><span class="fas fa-edit" aria-hidden="true"></span></a> ';
+            content = content + '<a id="delete_report" data-msg-id="' + msg[i]._id + '" data-node-id="' + msg[i].message.id + '" class="btn btn-danger btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Delete Report"><span class="fas fa-trash-alt" aria-hidden="true"></span></a> ';
+            content = content + '</div>';
+            content = content + '</div></div><br>';
+            
+            $('circle[data-node-id="' + msg[i].message.id + '"]').attr("data-content", content);
+            
+        }
+    }
+
+    socket.on('SEND_MSG', function(msg){       
+        //recieving messages
+            updateData(msg);   
+    });
+
+    socket.on('SEND_MSG_ALL', function(msg){       
+        //recieving messages
+            alert_data = [];        // rest array
+            $('circle[data-node-type="solar_system"]').attr("data-content", '<div class="d-flex justify-content-center"><a id="open_report" class="btn btn-warning btn-sm"  style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a></div><br>');
+            $('circle[data-node-type="solar_system"]').tooltip('hide'); // if there is no message hide remaining one
+            $('circle[data-node-type="solar_system"]').popover('hide'); // hide open popvers as well
+            updateData(msg);   
+    });
+
+    // Report Form is sent
+    $("#report").submit(function(e) {
+        e.preventDefault(); // prevents page reloading
+        node_id = $("#report_systemname").attr("data-node-id");
+        node_name = $("#report_systemname").attr("data-node-name");
+        unknown_val = $("#report_unknown_count").val();
+        frigate_val = $("#report_frigate_count").val();
+        destroyer_val = $("#report_destroyer_count").val();
+        cruiser_val = $("#report_cruiser_count").val();
+        battlecruiser_val = $("#report_bc_count").val();
+        battleship_val = $("#report_bs_count").val();
+        miningbarge_val = $("#report_barge_count").val();
+        sum = Number(unknown_val) + Number(frigate_val) + Number(destroyer_val) + Number(cruiser_val) + Number(battlecruiser_val) + Number(battleship_val) + Number(miningbarge_val);
+        at = $("#report_location").val();
+        gatecamp = $("#report_gatecamp").prop("checked");
+        bubble = $("#report_bubble").prop("checked");
+        message = {
+            "id" : node_id,
+            "system" : node_name,
+            "type" : "red",
+            "number" : sum,
+            "loc" : at, 
+            "shiptype" : {
+                "u": unknown_val,
+                "f": frigate_val,
+                "d": destroyer_val,
+                "c": cruiser_val,
+                "bc": battlecruiser_val,
+                "bs": battleship_val,
+                "i": miningbarge_val
+            },
+            "gatecamp": gatecamp,
+            "bubble": bubble,
+            "uid" : uid
+        };
+        socket.emit('SAVE_MSG', message);
+        console.log(message);
+        // reset form
+        function resetForm($form) {
+            $form.find('input:text, input:password, input:file, select, textarea').val(0);
+            $('#report_location').val('');
+            $form.find('input:radio, input:checkbox')
+                .prop('checked',false).prop('selected',false);
+        }
+        resetForm($('#report'));
+        // close side menu
+        $("#mySidenav").animate({right: '-250px'});
+        // close popovers
+        $('circle[data-node-type="solar_system"]').popover('hide');
+        return false;
+    });
+    // -----------------------------------------------------------------------------------------------------------
+
+
+
+    
+
+    
+
+});
+
+
+
+</script>
+
+<%- include('partials/footer') -%>

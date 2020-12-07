@@ -1,0 +1,43 @@
+<nav class="navbar navbar-dark bg-dark">
+  <a class="navbar-brand" href="/dashboard">
+    <% guilds.forEach(guild => { %>
+    <% if (guild.name == whitelistAlliance) { %>
+    <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" width="30" height="30"
+      class="d-inline-block align-top" alt="" loading="lazy">
+    &nbsp; <%= guild.name %>
+    <% } %>
+    <% }) %>
+    - <span class="badge badge-danger">DEFCON</span>
+  </a>
+  <form class="form-inline" action="/auth/logout">
+    <img src="https://cdn.discordapp.com/avatars/<%= discordId %>/<%= avatar %>.png" width="30" height="30"
+      class="rounded-circle" alt="" loading="lazy">
+    &nbsp;
+    <span class="align-middle font-weight-bold"><%= username %>#<%= discriminator %></span>
+    &nbsp;
+    <button type="submit" class="btn btn-danger btn-small">
+      <span class="fab fa-discord" aria-hidden="true"></span> Logout
+    </button>
+  </form>
+</nav>
+
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link" href="/dashboard/overview">Universe</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" href="/dashboard/region?id=10000060">Region</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">Fleet Ops</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">PvE</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">Industry</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">Admin</a>
+  </li>
+</ul>

@@ -1,0 +1,199 @@
+<%- include('partials/header') -%>
+
+<%- include('partials/pageMenu') -%>
+
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<div id="map_container">
+</div>
+
+<div id="map_buttons">
+    <button type="button" class="btn btn-secondary btn-sm" id="zoom_reset" data-toggle="tooltip" data-placement="bottom"
+        title="Reset Position and Zoom"><span class="fas fa-expand" aria-hidden="true"></span></button>
+    <button type="button" class="btn btn-secondary btn-sm" id="center" data-toggle="tooltip" data-placement="bottom"
+        title="Center the Map"><span class="fas fa-compress-arrows-alt" aria-hidden="true"></span></button>
+</div>
+
+
+<script>
+    $(function () {
+        // DIV dimensions
+        var w = $('#map_container').width();
+        var h = $('#map_container').height();
+
+        // assign tool tip to buttons
+        $('button').tooltip();
+
+        // Load SVG
+        var xml = d3.xml('/media/regions.svg').mimeType('image/svg+xml').get(function (error, data) {
+            if (error) throw error;
+
+            // Zoom Range
+            var max_out = 0.25;
+            var max_in = 20;
+
+            // Append SVG content to container
+            d3.select('#map_container').node().append(data.documentElement);
+
+            // SVG selector
+            var svg = d3.select('svg');
+            var svg_w = svg.attr('data-width');
+            var svg_h = svg.attr('data-height');
+
+            // select circles
+            // var circles_regions = d3.selectAll('[data-node-type=region]');
+            // var circle_regions_rad = circles_regions.attr('r');
+            var circles_solar_systems = d3.selectAll('[data-node-type=solar_system]');
+            var circle_solar_systems_rad = circles_solar_systems.attr('r');
+
+            // // select text
+            // var texts = d3.selectAll('text');
+            // var text_size = texts.style('font-size');
+            // text_size = (parseInt(text_size));
+
+            // Group selector
+            var g = svg.select('g');
+
+            // Color Security
+            circles_solar_systems.attr('[data-node-type=solar_system]', function (d, i, n) {
+                if (d3.select(n[i]).attr('data-node-sec') > 0.4) {
+                    d3.select(n[i]).style("fill", "#00ff00");
+                }
+                if (d3.select(n[i]).attr('data-node-sec') <= 0.4) {
+                    d3.select(n[i]).style("fill", "#e79f3a");
+                }
+                if (d3.select(n[i]).attr('data-node-sec') < 0.0) {
+                    d3.select(n[i]).style("fill", "#d10f0f");
+                }
+            });
+
+
+            // Color DEVLE
+            d3.selectAll('[data-node-region="10000060"]')
+                .style("fill", "#1b75bc");
+
+            // label selector
+            var solar_label = d3.selectAll('[data-node-type="solar_system_label"]');
+            var sec_label = d3.selectAll('[data-node-type="solar_system_sec"]');
+            solar_label.style("fill-opacity", 0.0) // set transparency
+            sec_label.style("fill-opacity", 0.0) // set transparency
+
+            // system selector
+            var solar_system = d3.selectAll('[data-node-type="solar_system"]');
+
+            // popover handling
+            $('circle[data-node-type="solar_system"]').filter(function () {
+                return $(this).attr("data-node-sec") > 0.4;
+            }).popover({
+                trigger: 'hover',
+                container: 'body',
+                placement: 'bottom',
+                title: '',
+                content: '',
+                html: true,
+                template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-header high-sec"></h3><div class="popover-body"></div></div>'
+            });
+            $('circle[data-node-type="solar_system"]').filter(function () {
+                return $(this).attr("data-node-sec") <= 0.4 && $(this).attr("data-node-sec") >=
+                    0.0;
+            }).popover({
+                trigger: 'hover',
+                container: 'body',
+                placement: 'bottom',
+                title: '',
+                content: '',
+                html: true,
+                template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-header low-sec"></h3><div class="popover-body"></div></div>'
+            });
+            $('circle[data-node-type="solar_system"]').filter(function () {
+                return $(this).attr("data-node-sec") < 0.0;
+            }).popover({
+                trigger: 'hover',
+                container: 'body',
+                placement: 'bottom',
+                title: '',
+                content: '',
+                html: true,
+                template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-header null-sec"></h3><div class="popover-body"></div></div>'
+            });
+            $("[data-toggle='popover']").on('show.bs.popover', function () {
+                hovered = $(this);
+                header = `${hovered.attr("data-node-name")} (${hovered.attr("data-node-sec")})`;
+                content =
+                    `${hovered.attr("data-node-name")} (${hovered.attr("data-node-sec")})<br>ID: ${hovered.attr("data-node-id")}<br>RID: ${hovered.attr("data-node-region")}<br>Type: ${hovered.attr("data-node-type")}`;
+                $(this).attr("data-original-title", header);
+                $(this).attr("data-content", content);
+            });
+
+            // Zoom handling
+            // https://www.freecodecamp.org/news/get-ready-to-zoom-and-pan-like-a-pro-after-reading-this-in-depth-tutorial-5d963b0a153e/
+            var k = 0;
+            var zoom = d3.zoom()
+                //.extent([10,100],[4000,4000])
+                //.translateExtent([[-(4000-100), -(4000-100)], [4000+4000-100, 4000+4000-100]]) // [how far to right, how far to bottom] [ how far to left including SVG size, how for to top including the SVG size]
+                .scaleExtent([max_out, max_in]) // Zoom Range
+                .on('zoom', function () {
+                    g.attr('transform', d3.event.transform); // apply zoom to <g>
+                    current_scale = d3.event.transform.k; // save current zoom level
+                    //circles_regions.attr("r", circle_regions_rad/current_scale);                // keep circle radius during zoom
+                    //circles_solar_systems.attr("r", circle_solar_systems_rad/current_scale);    // keep circle radius during zoom
+                    //texts.style('font-size', text_size/current_scale + 'px');                   // keep text size during zoom
+                    //texts.style("stroke-width", 1);
+
+                    // make labels visible at special scale
+                    if (current_scale > 1.5) {
+                        solar_label.style("fill-opacity", 0.7);
+                        sec_label.style("fill-opacity", 0.7);
+                    } else {
+                        solar_label.style("fill-opacity", 0.0);
+                        sec_label.style("fill-opacity", 0.0);
+                    }
+
+                    //hide popover during zoom / pan
+                    $('[data-node-type="solar_system"]').popover('hide');
+                });
+            svg.call(zoom);
+            svg.on("dblclick.zoom", null);
+
+
+            // initial centering
+            var trans_x = (w - (svg_w) * max_out) / 2;
+            var trans_y = (h - (svg_h) * max_out) / 2;
+            svg.transition()
+                .call(zoom.transform, d3.zoomIdentity.translate(trans_x, trans_y).scale(max_out));
+
+            // Reset zoom
+            $('#zoom_reset').click(() => {
+                trans_x = (w - (svg_w) * max_out) / 2;
+                trans_y = (h - (svg_h) * max_out) / 2;
+                svg.transition()
+                    .duration(750)
+                    .call(zoom.transform, d3.zoomIdentity.translate(trans_x, trans_y).scale(
+                        max_out));
+            });
+
+            // Center
+            $('#center').click(() => {
+                trans_x = (w - (svg_w) * current_scale) / 2;
+                trans_y = (h - (svg_h) * current_scale) / 2;
+                svg.transition()
+                    .duration(750)
+                    .call(zoom.transform, d3.zoomIdentity.translate(trans_x, trans_y).scale(
+                        current_scale));
+            });
+
+            // positon map buttons
+            svg_coords = $('svg').position();
+            $("#map_buttons").css({top: svg_coords.top + 10, left: svg_coords.left + 10, position:'absolute'});
+            $("#map_socket").css({top: svg_coords.top + 50, left: svg_coords.left, position:'absolute'});
+            $( window ).on( "orientationchange", function() {
+                svg_coords = $('svg').position();
+                $("#map_buttons").css({top: svg_coords.top + 10, left: svg_coords.left + 10, position:'absolute'});
+                $("#map_socket").css({top: svg_coords.top + 50, left: svg_coords.left, position:'absolute'}); 
+            });
+
+        });
+    });
+</script>
+
+<%- include('partials/footer') -%>
