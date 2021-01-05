@@ -9,7 +9,7 @@ router.get('/', passport.authenticate('discord'));
 // redirect after login
 router.get('/redirect', passport.authenticate('discord', {
     failureRedirect: '/forbidden', // not authenticated
-    successRedirect: '/dashboard/overview' // autgenticated
+    successRedirect: '/dashboard/region?id=10000060' // autgenticated
 }));
 
 // logout

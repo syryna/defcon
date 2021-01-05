@@ -10,7 +10,7 @@ const {
 } = require('winston/lib/winston/transports');
 
 // read the file
-let rawdata = fs.readFileSync(path.join(__dirname, './eveeye_universe_map.json'));
+let rawdata = fs.readFileSync(path.join(__dirname, './static/eveeye_universe_map.json'));
 let solarSystemsJSON = JSON.parse(rawdata);
 
 //{"id":"10000001","label":"Derelik","rid":10000000,"x":541.9,"y":628.8,"size":5,"sec":0.506,"color":"#ffff00","c":""}

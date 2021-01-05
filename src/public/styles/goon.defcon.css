@@ -1,3 +1,9 @@
+/* Disable scrollbar */
+body {
+    overflow-x: hidden;
+    /* overflow-y: hidden; */
+}
+
 /* Initial Page only */
 .center-div {
     position: absolute;
@@ -25,52 +31,45 @@
 }
 
 /* Popover colors */
-.popover {
-    border-color: #ffffff;
+.popover, #drag_item {
+    opacity: 0.9;
     max-width: 300px;
+    min-width: 300px;
+    z-index: 1080;
 }
 
 .popover-body {
     background-color: #000000;
     color: #ffffff;
+    border-radius: .25rem;
+    margin: -1px; /* fixes with rounded border issue*/
+    padding: 5px 5px 5px 5px;
 }
 
-.popover-header {
-    background-color: #191d21;
-    color: #ffffff;
+.bs-popover-auto[x-placement^=top]>.arrow::after, .bs-popover-top>.arrow::after {
+    border-top-color: #000;
 }
-
-/* Tooltip colors */
-/* .tooltip-inner {
-    color: #fff;
-    text-align: center;
-    background-color: #d10f0f;
-    font-size: 14px;
+.bs-popover-auto[x-placement^=bottom]>.arrow::after, .bs-popover-bottom>.arrow::after {
+    border-bottom-color: #000;
 }
-
-.tooltip.bs-tooltip-auto[x-placement^=top] .arrow::before, .tooltip.bs-tooltip-top .arrow::before {
-    border-top-color: #d10f0f;
+.bs-popover-auto[x-placement^=left]>.arrow::after, .bs-popover-left>.arrow::after {
+    border-left-color: #000;
 }
-.tooltip.bs-tooltip-auto[x-placement^=bottom] .arrow::before, .tooltip.bs-tooltip-bottom .arrow::before {
-    border-bottom-color: #d10f0f;
+.bs-popover-auto[x-placement^=right]>.arrow::after, .bs-popover-right>.arrow::after {
+    border-right-color: #000;
 }
-.tooltip.bs-tooltip-auto[x-placement^=left] .arrow::before, .tooltip.bs-tooltip-left .arrow::before {
-    border-left-color: #d10f0f;
-}
-.tooltip.bs-tooltip-auto[x-placement^=right] .arrow::before, .tooltip.bs-tooltip-right .arrow::before {
-    border-right-color: #d10f0f;
-} */
-
 
 /* Side Menu https://stackoverflow.com/questions/10940689/how-to-push-an-element-outside-the-screen-without-the-browser-just-expanding-the */
 .sidenav {
     position: fixed;
     top: 0px;
-    right: -250px;
+    right: -300px;
     bottom: 0px;
-    width: 250px;
+    width: 300px;
     z-index: 2000;
-    background-color: #14171a;
+    /* background-color: #14171a; */
+    background-color: #000000;
+    opacity: 0.9;
     overflow-x: hidden;
 }
 .sidenav .input-group, h5, h6, .btn-group, .report_send {
@@ -84,6 +83,32 @@
     transition: 0.3s;
 }
 
+.navbar {
+    z-index: 2000;
+}
+nav {
+    z-index: 2000;
+}
+
+.modal {
+    z-index: 2100;
+}
+
+.dragable { 
+    position:absolute;
+    /* cursor:move; */
+    background-color: #000000;
+    opacity: 0.9;
+    border-radius: .25rem;
+    padding: 5px 5px 5px 5px;
+}
+
+/* adjust auto width for my containers and move them out of screen to avoid interference to mouse events on map */
+#map_buttons, #popover_template, #tooltip_template, #popover_content, #drag_item {
+    position: absolute;
+    width: auto;
+    top: -500px 
+}
 
 /* Generic colors */
 .high-sec {

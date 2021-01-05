@@ -53,6 +53,8 @@ passport.use(new DiscordStrategy({
                 guilds: profile.guilds,
                 locale: profile.locale,
                 avatar: profile.avatar,
+                type: 1,
+                locked: false,
                 lastUpdate: new Date()
             });
             const savedUser = await newUser.save();

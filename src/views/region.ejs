@@ -6,63 +6,38 @@
     <%- include('partials/pageMenu') -%>
 <%}%> 
 
-<script src="https://d3js.org/d3.v4.js"></script>
-
 <div id="map_container"></div>
 
 <!-- container for map buttons -->
-<div id="map_buttons" class="input-group" >
-    <button type="button" class="btn btn-secondary btn-sm" id="zoom_reset" data-toggle="tooltip" data-placement="bottom" title="Reset Position and Zoom"><span class="fas fa-expand" aria-hidden="true"></span></button>
-    <button type="button" class="btn btn-secondary btn-sm" id="center" data-toggle="tooltip" data-placement="bottom" title="Center the Map"><span class="fas fa-compress-arrows-alt" aria-hidden="true"></span></button>
+<div id="map_buttons" class="input-group">
+    <button type="button" class="btn btn-outline-warning btn-sm" id="zoom_reset" data-toggle="tooltip" data-placement="bottom" 
+        title="Reset Position and Zoom"><span class="fas fa-expand" aria-hidden="true"></span></button>&nbsp;
+    <button type="button" class="btn btn-outline-warning btn-sm" id="center" data-toggle="tooltip" data-placement="bottom" 
+        title="Center the Map"><span class="fas fa-compress-arrows-alt" aria-hidden="true"></span></button>&nbsp;
     <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" data-placement="bottom" title="Select Region" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" data-placement="bottom" title="Select Region" aria-haspopup="true" aria-expanded="false">
             <span class="far fa-map" aria-hidden="true"></span>
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="dropdown_select">
           <!-- <a class="dropdown-item" href="#">Action</a> -->
         </div>
-    </div>
+    </div>&nbsp;
     <% if (flavor == 'mobile') { %>
-        <a class="btn btn-secondary btn-sm" href="/dashboard/region?id=<%= query %>" role="button" data-toggle="tooltip" data-placement="bottom" title="Return to Desktop Version"><span class="fas fa-desktop" aria-hidden="true"></span></a>
+        <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>" role="button" data-toggle="tooltip" data-placement="bottom" title="Return to Desktop Version"><span class="fas fa-desktop" aria-hidden="true"></span></a>&nbsp;
     <% } else {%> 
-        <a class="btn btn-secondary btn-sm" href="/dashboard/region?id=<%= query %>&flavor=mobile" role="button" data-toggle="tooltip" data-placement="bottom" title="Open Clean Window for Mobiles"><span class="fas fa-tablet-alt" aria-hidden="true"></span></a>
+        <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>&flavor=mobile" role="button" data-toggle="tooltip" data-placement="bottom" title="Open Clean Window for Mobiles"><span class="fas fa-tablet-alt" aria-hidden="true"></span></a>&nbsp;
     <%}%>   
-    <a id="chat-toggle" class="btn btn-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show socket.io chat"><span class="far fa-comment-alt" aria-hidden="true"></span></a>
-    <a id="array_dump" class="btn btn-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show message array"><span class="fas fa-layer-group" aria-hidden="true"></span></a>
-</div>
-
-<!-- container for message chat -->
-<div id="map_socket" class="input-group row row-cols" style="display:none; background-color: #191d21; border-color: darkgray; border-style: solid; border-width: 1px;">
-    <div class="col">
-        <div class="input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text">Messages</span>
-            </div>
-            <textarea id="messages" class="form-control" aria-label="With textarea" rows="10"></textarea>
-        </div>
-        <div class="input-group mb-3">
-            <form id="chat" action="">
-                <input id="m" type="text" class="form-control" placeholder="message" aria-label="message" aria-describedby="button-addon2">
-                <div class="input-group-append">
-                <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Send</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <button type="button" class="btn btn-outline-warning btn-sm" id="search_loc" data-toggle="modal" data-target="#search_modal"  data-placement="bottom" 
+        title="Search for System"><span class="fas fa-search-location" aria-hidden="true"></span></button>&nbsp;
+    <a id="array_dump" class="btn btn-outline-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show message array"><span class="fas fa-layer-group" aria-hidden="true"></span></a>&nbsp;
 </div>
 
 <!-- container for side bar -->
 <div id="mySidenav" class="sidenav">
     <form id="report" action="">
-        <button type="button" class="close" aria-label="Close">
-            <span id="menu-toggle" aria-hidden="true">&times;</span>
-        </button>
-        <br>
-        <br>
         <h5>Report Enemy</h5>
         <hr>
         <h6 id="report_systemname"></h6>
-        <br>
         <div class="input-group input-group-sm">
             <div class="input-group-prepend input-group-sm">
                 <span class="input-group-text input-group-sm"><span style="width: 16px; height: 16px;" class="fas fa-question" aria-hidden="true"></span></span>
@@ -153,11 +128,21 @@
             </div>
             <input id="report_location" type="text" class="form-control" placeholder="optional: e.g gate; planet 5" aria-label="location" aria-describedby="">
         </div>
+        <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+            <span class="input-group-text" style="width: 34px">txt</span>
+            </div>
+            <input id="report_comment" type="text" class="form-control" placeholder="optional: e.g names or ships" aria-label="comment" aria-describedby="">
+        </div>
         <br>
         <div class="input-group input-group-sm">
             <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="report_gatecamp">
                 <label class="custom-control-label" for="report_gatecamp"><img src="/media/stargate.png"> Gate Camp</label>
+            </div>
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="report_stationcamp">
+                <label class="custom-control-label" for="report_stationcamp"><img src="/media/station.png"> Station Camp</label>
             </div>
             <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="report_bubble">
@@ -166,22 +151,102 @@
         </div>
         <br>
         <div class="input-group input-group-sm justify-content-center">
-            <!-- <a id="report_send" class="btn btn-outline-light btn-sm" href="#" role="button"><span class="fas fa-bullhorn" aria-hidden="true"> Send Report</span></a> -->
-            <button class="btn btn-outline-secondary" type="submit" id="report_send">Send</button>
+            <button class="btn btn-outline-warning" type="submit" id="report_send" data-type="save">Save</button>
         </div>
     </form>
-
 </div>
 
-<!-- container for tooltip -->
 
+<!-- container for the popover -->
+<div id="popover_template" class="invisible">
+    <div class="popover" role="tooltip">
+        <div class="arrow"></div>
+        <div class="popover-body"></div>
+    </div>
+</div>
 
-<!-- container for popover -->
+<!-- container for the tooltip -->
+<div id="tooltip_template" class="invisible">
+    <div class="tooltip" role="tooltip">
+        <div class="arrow"></div>
+        <div class="tooltip-inner">
+            <div class="d-flex justify-content-center">
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- container for the popover content -->
+<div id="popover_content" class="invisible">
+    <div class="container p-0">
+        <div id="drag_part" class="container p-0">
+            <div class="row m-0">
+                <div id="pop_pic" class="col-6 p-0 mt-1 border-top border-dark text-truncate" style="font-size: 12px">
+                </div>
+                <div id="pop_time" class="col-6 p-0 mt-1 border-top border-dark d-flex justify-content-end" style="font-size: 12px">
+                </div>
+            </div>
+            <div class="row m-0">
+                <div id="pop_threat" class="col-auto p-0">
+                </div>
+                <div id="pop_ships" class="col-auto p-0 d-flex flex-wrap">
+                </div>
+            </div>
+            <div class="row m-0">
+                <div id="pop_location" class="col-12 p-0 text-truncate" style="font-size: 12px">
+                </div>
+            </div>
+            <div class="row m-0">
+                <div id="pop_comment" class="col-12 p-0 text-truncate" style="font-size: 12px">
+                </div>
+            </div>
+            <div class="row m-0">
+                <div id="pop_buttons" class="col-12 p-0 border-bottom border-dark d-flex justify-content-around">
+                </div>
+            </div> 
+        </div>     
+    </div>
+</div>
+
+<!-- container for the drag_item -->
+<div id="drag_item" class="invisible dragable">
+    <div class="popover" role="tooltip">
+        <div class="arrow"></div>
+        <div class="popover-body">test</div>
+    </div>
+</div>
+
+<!-- Search Modal -->
+<div class="modal fade" id="search_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="exampleModalLabel">Do not know the system name? Search for it to figure out where it is located!</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        <div class="modal-body">
+            <form>
+                <div class="form-group">
+                    <label for="autocomplete">System name</label>
+                    <input type="text" class="form-control" id="autocomplete" aria-describedby="searchHelpTxt" autocomplete="off">
+                    <small id="searchHelpTxt" class="form-text text-muted">Enter system name it will autocomplete</small>
+                </div>
+                <button type="submit" class="btn btn-outline-warning" id="search_send">Search</button>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn btn-outline-warning">Search</button> -->
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
 
-// Form handling
+/* Calculations for the Report Enemy Form. 
+Values calculated for the buttons to do +1 +10 or -1 -10 and store in the coresponding fields */
 function changeValue(id, operator, value){
     if (operator == "sub"){
         current_value = parseInt(document.getElementById(id).value);
@@ -213,132 +278,294 @@ function changeValue(id, operator, value){
     }    
 }
 
+/* Document ready functions which are executed once the page is loaded */
 $(function() {
 
-    // gloabal variables
-    var socket = io();
-    var DateTime = luxon.DateTime;
-    var alert_data =[];
-    var uid = "<%= discordId %>";
+    /* glabal variables */
+    const socket = io();
+    const DateTime = luxon.DateTime;
+    var alert_data = [];
+    var sys_reg_data = [];
+    const uid = "<%= discordId %>";
+    const avatar ="<%= avatar %>";
+    const username = "<%= username %>";
+    const discriminator = "<%= discriminator %>";
+    const region = "<%= query %>";
+    var region_name = '';
     var zoomTrans = {x:0, y:0, scale:1};
     var w = $('#map_container').width();
     var h = $('#map_container').height();
-    var max_out = 0.2;
-    var max_in = 2;
+    var x = 0;
+    var y = 0;
+    const max_out = 0.2;
+    const max_in = 2;
+    var move_alert = [];
 
-    // Load SVG
-    var xml = d3.xml('/media/<%= query %>.svg').mimeType('image/svg+xml').get(function(error, data) {
+    /* Initialization
+    ---------------------------------------------------------------------------------------------------------------------------------------
+    */
+    $('.nav-item').removeClass('active');                                       // reset aktive menu item
+    $('#intel').addClass('active');                                             // set active menu item    
+
+    socket.emit('GET_MSG_ALL', '');                                             // inital request to send all messages
+    socket.emit('GET_SYS_REG_DATA', '');                                        // inital request to send all solar system and region data
+
+    $('button').tooltip();                                                      // assign tooltip to buttons
+    $('[role=button]').tooltip();                                               // assign tool tip to buttons
+
+    // fill dropdown
+    regions = [ {"id":10000001,"name":"Derelik"},
+                {"id":10000002,"name":"The Forge"},
+                {"id":10000003,"name":"Vale of the Silent"},
+                {"id":10000004,"name":"UUA-F4"},
+                {"id":10000005,"name":"Detorid"},
+                {"id":10000006,"name":"Wicked Creek"},
+                {"id":10000007,"name":"Cache"},
+                {"id":10000008,"name":"Scalding Pass"},
+                {"id":10000009,"name":"Insmother"},
+                {"id":10000010,"name":"Tribute"},
+                {"id":10000011,"name":"Great Wildlands"},
+                {"id":10000012,"name":"Curse"},
+                {"id":10000013,"name":"Malpais"},
+                {"id":10000014,"name":"Catch"},
+                {"id":10000015,"name":"Venal"},
+                {"id":10000016,"name":"Lonetrek"},
+                {"id":10000017,"name":"J7HZ-F"},
+                {"id":10000018,"name":"The Spire"},
+                {"id":10000019,"name":"A821-A"},
+                {"id":10000020,"name":"Tash-Murkon"},
+                {"id":10000021,"name":"Outer Passage"},
+                {"id":10000022,"name":"Stain"},
+                {"id":10000023,"name":"Pure Blind"},
+                {"id":10000025,"name":"Immensea"},
+                {"id":10000027,"name":"Etherium Reach"},
+                {"id":10000028,"name":"Molden Heath"},
+                {"id":10000029,"name":"Geminate"},
+                {"id":10000030,"name":"Heimatar"},
+                {"id":10000031,"name":"Impass"},
+                {"id":10000032,"name":"Sinq Laison"},
+                {"id":10000033,"name":"The Citadel"},
+                {"id":10000034,"name":"The Kalevala Expanse"},
+                {"id":10000035,"name":"Deklein"},
+                {"id":10000036,"name":"Devoid"},
+                {"id":10000037,"name":"Everyshore"},
+                {"id":10000038,"name":"The Bleak Lands"},
+                {"id":10000039,"name":"Esoteria"},
+                {"id":10000040,"name":"Oasa"},
+                {"id":10000041,"name":"Syndicate"},
+                {"id":10000042,"name":"Metropolis"},
+                {"id":10000043,"name":"Domain"},
+                {"id":10000044,"name":"Solitude"},
+                {"id":10000045,"name":"Tenal"},
+                {"id":10000046,"name":"Fade"},
+                {"id":10000047,"name":"Providence"},
+                {"id":10000048,"name":"Placid"},
+                {"id":10000049,"name":"Khanid"},
+                {"id":10000050,"name":"Querious"},
+                {"id":10000051,"name":"Cloud Ring"},
+                {"id":10000052,"name":"Kador"},
+                {"id":10000053,"name":"Cobalt Edge"},
+                {"id":10000054,"name":"Aridia"},
+                {"id":10000055,"name":"Branch"},
+                {"id":10000056,"name":"Feythabolis"},
+                {"id":10000057,"name":"Outer Ring"},
+                {"id":10000058,"name":"Fountain"},
+                {"id":10000059,"name":"Paragon Soul"},
+                {"id":10000060,"name":"Delve"},
+                {"id":10000061,"name":"Tenerifis"},
+                {"id":10000062,"name":"Omist"},
+                {"id":10000063,"name":"Period Basis"},
+                {"id":10000064,"name":"Essence"},
+                {"id":10000065,"name":"Kor-Azor"},
+                {"id":10000066,"name":"Perrigen Falls"},
+                {"id":10000067,"name":"Genesis"},
+                {"id":10000068,"name":"Verge Vendor"},
+                {"id":10000069,"name":"Black Rise"}];
+
+    regions.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));                                // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
+    for(i in regions)
+    {
+        $('<a class="dropdown-item"></a>').attr("href","/dashboard/region?id="+regions[i].id).html(regions[i].name).appendTo('#dropdown_select'); 
+    } 
+
+    // Autocomplete for Search Modal
+    var input = document.getElementById("autocomplete");
+    autocomplete({
+        input: input,
+        emptyMsg: "No System found, try again",
+        preventSubmit: true,
+        disableAutoSelect: true,
+        fetch: function(text, update) {
+            text = text.toLowerCase();
+            //var suggestions = sys_reg_data.filter(n => n.name.toLowerCase().startsWith(text))  
+            var suggestions = sys_reg_data.filter(n => n.name.toLowerCase().includes(text));                   // data structure: {_id: "5fb7ed7de4781119eced07f5", id: 30000101, name: "Uhtafal", region_id: 10000001, region_name: "Derelik"}
+            update(suggestions);
+        },
+        onSelect: function(item) {
+            input.value = item.name;
+        }
+    });
+
+    /* Initialization
+    ---------------------------------------------------------------------------------------------------------------------------------------
+    */
+
+    /* SVG handling block. all features around the SVG itself or which require the SVG loaded
+    ---------------------------------------------------------------------------------------------------------------------------------------
+    */
+    var xml = d3.xml('/media/<%= query %>.svg').mimeType('image/svg+xml').get(function(error, data) {               // load region SVG
         if (error) throw error;
 
         // Append SVG content to container
         d3.select('#map_container').node().append(data.documentElement);
 
-        // SVG selector
+        // different SVG selectors
         var svg = d3.select('svg');
+        var background = svg.select('[data-node-type=background]');
         var svg_w = svg.attr('data-width');
         var svg_h = svg.attr('data-height');
+        var path = d3.selectAll('path');
+        var circle = d3.selectAll('circle[data-node-type="solar_system"]');
 
-        // G selector
-        var rect = d3.select('rect');
+        // Color Region
+        d3.selectAll('path[data-node-rid="' + region + '"]')
+            .style("fill", "#1c2c3d");
 
-        // getting coords for solar system adjustments during click
-
-
-        rect.on('click', function(){
-            x = (d3.event.x - zoomTrans.x)/zoomTrans.scale;
-            y = (d3.event.y - zoomTrans.y)/zoomTrans.scale;
-            console.log('x: ' +  x + 'y: '+  y);
-
-            // close popovers
-            $('circle[data-node-type="solar_system"]').popover('hide');
-            // close sidemenu
-            $("#mySidenav").animate({right: '-250px'});
-        })
-
-        // Color DEVLE
-        d3.selectAll('[data-node-region="10000060"]')
-            .style("fill", "#1b75bc");
-
-        // build text boxes
+        // build text boxes for the solar system names
         var text = [];
-        d3.selectAll('.solar_label > text').attr('x', function(d,i){
+        d3.selectAll('[data-node-type="solar_systems"] > g > text').attr('x', function(d,i){
             text.push({text:d, pos:i, el: d3.select(this)});
             return d3.select(this).attr('x');
         });
-        d3.selectAll('.solar_label').data(text).insert('rect',":first-child")
-            .attr('x', function(d){ return d.el.node().getBBox().x - 5})
-            .attr('y', function(d){return d.el.node().getBBox().y })
-            .attr('width', function(d){return d.el.node().getBBox().width + 10})
-            .attr('height', function(d){return d.el.node().getBBox().height })
-            .style('stroke', 'gray').style('fill', '#000000').style("fill-opacity", 0.5);
+        d3.selectAll('[data-node-type="solar_systems"] > g').data(text).insert('rect')
+            .attr('x', function(d){ 
+                return d.el.node().getBBox().x - 5}
+                )
+            .attr('y', function(d){
+                return d.el.node().getBBox().y }
+                )
+            .attr('width', function(d){
+                return d.el.node().getBBox().width + 10}
+                )
+            .attr('height', function(d){
+                return d.el.node().getBBox().height }
+                )
+            .style('stroke', 'gray')
+            .style('fill', '#000000')
+            .style("fill-opacity", 0.5);
 
-        // popover handling
+        // add popover and tooltip to all solar systems in the current region
         $('circle[data-node-type="solar_system"]')
-        .popover({ trigger: 'manual', container: 'body', placement:'bottom', title: '', content:'dummy', html: true, sanitize: false, template : '<div class="popover" role="tooltip"><div class="arrow"></div><div class="popover-body"></div></div>'})
-        .tooltip({ trigger: 'manual', container: 'body', placement:'top', title:'dummy', html: true, sanitize: false, template : `<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>`});
-        $('circle[data-node-type="solar_system"]').attr("data-content", '<div class="d-flex justify-content-center"><a id="open_report" class="btn btn-warning btn-sm"  style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a></div><br>');
-
-        // Circle Onclick handling
-        $('circle[data-node-type="solar_system"]').on('click', function(){
-            $("#report_systemname").html("System: " + $(this).attr("data-node-name") + " (" + $(this).attr("data-node-sec") + ")");
-            $("#report_systemname").removeClass();
-            $("#report_systemname").addClass("null-sec");
-            $("#report_systemname").attr("data-node-id", $(this).attr("data-node-id"));
-            $("#report_systemname").attr("data-node-name", $(this).attr("data-node-name"));
-
-            // refresh sidebar
-            // $("#mySidenav").animate({right: '-250px'});
-            // $("#mySidenav").animate({right: '0px'});
-
-            // popover handling
-            $('circle[data-node-type="solar_system"]').popover('hide');
-            $(this).popover('show');
-        });
-
-        //socket.io for SVG clicks
-        //delegate click event from the document as popovers are created dynamically and have initially no events bound - https://stackoverflow.com/questions/54618503/how-to-click-on-a-link-inside-the-data-content-of-a-pop-over
-        $(document).on("click", "#open_report", function(event) {
-            event.preventDefault();
-            $("#mySidenav").animate({right: '0px'});
-        });
-        $(document).on("click", "#delete_report", function(event) {
-            event.preventDefault();
-            socket.emit('DEL_MSG', $(this).attr("data-msg-id"));
-            nodeid = $(this).attr("data-node-id");
-            $('circle[data-node-id="' + nodeid + '"]').tooltip('hide');
-            $('circle[data-node-id="' + nodeid + '"]').tooltip('show');
-
-
-            $('circle[data-node-type="solar_system"]').popover('hide');
-            
-        });
-
-        // Zoom handling - https://www.freecodecamp.org/news/get-ready-to-zoom-and-pan-like-a-pro-after-reading-this-in-depth-tutorial-5d963b0a153e/
-        var k = 0;
-        g = svg.select('g');
+            .popover({ 
+                trigger: 'manual', 
+                container: 'body', 
+                placement:'bottom', 
+                title: '', 
+                content:'dummy', 
+                html: true, 
+                sanitize: false, 
+                template: $('#popover_template').html()
+            })
+            .tooltip({ 
+                trigger: 'manual', 
+                container: 'body', 
+                placement:'top', 
+                title:'dummy', 
+                html: true, 
+                sanitize: false, 
+                template : $('#tooltip_template').html()
+            });
+   
+        // Zoom handling - https://www.freecodecamp.org/news/get-ready-to-zoom-and-pan-like-a-pro-after-reading-this-in-depth-tutorial-5d963b0a153e/      
         var zoom = d3.zoom()
-            .scaleExtent([max_out, max_in])                            // Zoom Range
+            .scaleExtent([max_out, max_in])                            
             .on('zoom', function(){
-                g.attr('transform', d3.event.transform);                                    // apply zoom to <g>
+                background.attr('transform', d3.event.transform);                                 
                 zoomTrans.x = d3.event.transform.x;
                 zoomTrans.y = d3.event.transform.y;
-                zoomTrans.scale = d3.event.transform.k;                                    // save current zoom level
-
+                zoomTrans.scale = d3.event.transform.k;                                    
                 // update popover and tooltip positions during zoom and pan
+                //resetUI();
                 $('[data-node-type="solar_system"]').popover('update');
                 $('[data-node-type="solar_system"]').tooltip('update');
             });
         svg.call(zoom);
-        svg.on("dblclick.zoom", null); // deaktivate doubleclick
-        
-        // initial centering
-        var trans_x = (w - (svg_w)*max_out)/2; 
-        var trans_y = (h - (svg_h)*max_out)/2;
-        svg.transition()
-            .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(max_out));
+
+        // deaktivate doubleclick
+        svg.on("dblclick.zoom", null); 
+
+        // reset UI and Drag on ESC key
+        document.onkeydown = function(evt) {
+            evt = evt || window.event;
+            if (evt.keyCode == 27) {
+                resetUI();
+                removeDrag();
+            }
+        };
+
+        // on click functions for the SVG elements
+        path.on('click', function(){
+            x = (d3.event.x - zoomTrans.x)/zoomTrans.scale;
+            y = (d3.event.y - zoomTrans.y)/zoomTrans.scale;
+            console.log('x: ' +  x + '\ty: '+  y);              
+            resetUI();
+        })
+
+        circle.on('click', function(){
+            if (typeof move_alert[0] !== "undefined"){
+                var source_msg_id = move_alert[0]._id;
+                var source_id = move_alert[0].message.id;
+                var target_id = $(this).attr("data-node-id");
+                move_alert[0].message.discordId = uid;
+                move_alert[0].message.avatar = avatar;
+                move_alert[0].message.username = username;
+                move_alert[0].message.discriminator = discriminator;
+                move_alert[0].message.id = target_id;
+                var msg = move_alert[0].message;
+                var msg_id = move_alert[0]._id;
+                socket.emit('DEL_MSG', source_msg_id);
+                socket.emit('SAVE_MSG', msg);
+                removeDrag();
+                refreshTooltips(target_id);
+                refreshTooltips(source_id);
+            } else {
+                var sys_sec = $(this).attr("data-node-sec");
+                sys_sec = parseFloat(sys_sec);
+                sys_sec = sys_sec.toFixed(2);
+                var sys_name = $(this).attr("data-node-name");
+                var sys_id = $(this).attr("data-node-id");
+                var solar_sys_x = $(this).attr("cx");
+                var solar_sys_y = $(this).attr("cy");
+
+                resetUI();
+                fillSidebar(sys_id, sys_name, sys_sec);
+                addSelector(sys_id, solar_sys_x, solar_sys_y);
+                showPopover($(this)); 
+            }            
+        });
+
+        $('circle[data-node-type="solar_system"]').on("mouseenter", function(e) {
+            if (typeof move_alert[0] !== "undefined") { 
+                var sys_id = $(e.target).attr("data-node-id");
+                var solar_sys_x = $(e.target).attr("cx");
+                var solar_sys_y = $(e.target).attr("cy");
+                addSelector(sys_id, solar_sys_x, solar_sys_y);
+            }
+        });
+
+        $('circle[data-node-type="solar_system"]').on("mouseleave", function(e) {
+            if (typeof move_alert[0] !== "undefined") { 
+                resetUI();
+            }
+        });
+
+        // dump array
+        $("#array_dump").on('click', function(){
+            console.log(alert_data);
+        });
 
         // Reset zoom
-        $('#zoom_reset').click(() => {
+        $('#zoom_reset').on('click', function() {
             trans_x = (w - (svg_w)*max_out)/2; 
             trans_y = (h - (svg_h)*max_out)/2;
             svg.transition()
@@ -347,171 +574,359 @@ $(function() {
         });
 
         // Center
-        $('#center').click(() => {
-            trans_x = (w - (svg_w)*current_scale)/2; 
-            trans_y = (h - (svg_h)*current_scale)/2;
+        $('#center').on('click', function() {
+            const trans_x = (w - (svg_w)*zoomTrans.scale)/2; 
+            const trans_y = (h - (svg_h)*zoomTrans.scale)/2;
             svg.transition()
                 .duration(750)
-                .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(current_scale));
+                .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(zoomTrans.scale));
         });
 
-        // positon map buttons
+        // Search
+        $('#search_send').on('click', function(event) {
+            event.preventDefault();
+            var search_value = $("#autocomplete").val(); 
+            var item_found = sys_reg_data.filter(n => n.name === search_value);  
+
+            if (item_found.length == 0){
+                $(".modal-footer").html('<span class="text-danger font-weight-bolder">System not found in whole Universe !</span>');
+            } else {
+                if (item_found[0].region_id != region){
+                    $(".modal-footer").html('<span class="text-danger font-weight-bolder">System "' + item_found[0].name + '" is in region "' + getRegionNameFromId(item_found[0].region_id) + '"!</span>');
+                } else {
+                    const target = $('circle[data-node-id="' + item_found[0].id + '"]');
+                    const sys_id = item_found[0].id
+                    const solar_sys_x = target.attr("cx");
+                    const solar_sys_y = target.attr("cy");
+
+                    resetUI();
+                    addSelector(sys_id, solar_sys_x, solar_sys_y);
+
+                    const trans_x = (w/2) - (solar_sys_x*zoomTrans.scale); 
+                    const trans_y = (h/2) - (solar_sys_y*zoomTrans.scale);
+                    svg.transition()
+                        .duration(750)
+                        .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(zoomTrans.scale));
+                    
+
+                    $("#autocomplete").val('');
+                    $('#search_modal').modal('toggle');
+                }
+            }
+        });
+        $('.modal').on('hide.bs.modal', function (e) {
+            $(".modal-footer").html('');
+        })
+
+        // initial centering
+        var trans_x = (w - (svg_w)*max_out)/2; 
+        var trans_y = (h - (svg_h)*max_out)/2;
+        svg.transition()
+            .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(max_out));
+
+        // positon map buttons and helper divs
         svg_coords = $('svg').position();
-        $("#map_buttons").css({top: svg_coords.top + 10, left: svg_coords.left + 10, position:'absolute'});
-        $("#map_socket").css({top: svg_coords.top + 50, left: svg_coords.left, position:'absolute'});
+        $("#map_buttons").css({top: svg_coords.top + 10, left: svg_coords.left + 10, position:'absolute'});        
         $( window ).on( "orientationchange", function() {
             svg_coords = $('svg').position();
             $("#map_buttons").css({top: svg_coords.top + 10, left: svg_coords.left + 10, position:'absolute'});
-            $("#map_socket").css({top: svg_coords.top + 50, left: svg_coords.left, position:'absolute'}); 
         });
-
-        // toggle chat
-        $("#chat-toggle").click(function(){
-            $("#map_socket").slideToggle("slow");
-        });
-
-        // dump array
-        $("#array_dump").click(function(){
-            console.log(alert_data);
-        });
-
-        // toggle Side menu
-        $("#menu-toggle").click(function(){
-            right = $("#mySidenav").css("right");
-            if (right == "0px"){
-                $("#mySidenav").animate({right: '-250px'});
-            } else {
-                $("#mySidenav").animate({right: '0px'});
-            }
-        });
-
-        
 
     });
+    /* SVG handling block
+    ---------------------------------------------------------------------------------------------------------------------------------------
+    */
 
-    // assign tool tip to buttons
-    $('button').tooltip();
-    $('[role=button]').tooltip();
-
-    
-    // fill dropdown
-    regions = [{"id":10000001,"name":"Derelik"},{"id":10000002,"name":"The Forge"},{"id":10000003,"name":"Vale of the Silent"},{"id":10000004,"name":"UUA-F4"},{"id":10000005,"name":"Detorid"},{"id":10000006,"name":"Wicked Creek"},{"id":10000007,"name":"Cache"},{"id":10000008,"name":"Scalding Pass"},{"id":10000009,"name":"Insmother"},{"id":10000010,"name":"Tribute"},{"id":10000011,"name":"Great Wildlands"},{"id":10000012,"name":"Curse"},{"id":10000013,"name":"Malpais"},{"id":10000014,"name":"Catch"},{"id":10000015,"name":"Venal"},{"id":10000016,"name":"Lonetrek"},{"id":10000017,"name":"J7HZ-F"},{"id":10000018,"name":"The Spire"},{"id":10000019,"name":"A821-A"},{"id":10000020,"name":"Tash-Murkon"},{"id":10000021,"name":"Outer Passage"},{"id":10000022,"name":"Stain"},{"id":10000023,"name":"Pure Blind"},{"id":10000025,"name":"Immensea"},{"id":10000027,"name":"Etherium Reach"},{"id":10000028,"name":"Molden Heath"},{"id":10000029,"name":"Geminate"},{"id":10000030,"name":"Heimatar"},{"id":10000031,"name":"Impass"},{"id":10000032,"name":"Sinq Laison"},{"id":10000033,"name":"The Citadel"},{"id":10000034,"name":"The Kalevala Expanse"},{"id":10000035,"name":"Deklein"},{"id":10000036,"name":"Devoid"},{"id":10000037,"name":"Everyshore"},{"id":10000038,"name":"The Bleak Lands"},{"id":10000039,"name":"Esoteria"},{"id":10000040,"name":"Oasa"},{"id":10000041,"name":"Syndicate"},{"id":10000042,"name":"Metropolis"},{"id":10000043,"name":"Domain"},{"id":10000044,"name":"Solitude"},{"id":10000045,"name":"Tenal"},{"id":10000046,"name":"Fade"},{"id":10000047,"name":"Providence"},{"id":10000048,"name":"Placid"},{"id":10000049,"name":"Khanid"},{"id":10000050,"name":"Querious"},{"id":10000051,"name":"Cloud Ring"},{"id":10000052,"name":"Kador"},{"id":10000053,"name":"Cobalt Edge"},{"id":10000054,"name":"Aridia"},{"id":10000055,"name":"Branch"},{"id":10000056,"name":"Feythabolis"},{"id":10000057,"name":"Outer Ring"},{"id":10000058,"name":"Fountain"},{"id":10000059,"name":"Paragon Soul"},{"id":10000060,"name":"Delve"},{"id":10000061,"name":"Tenerifis"},{"id":10000062,"name":"Omist"},{"id":10000063,"name":"Period Basis"},{"id":10000064,"name":"Essence"},{"id":10000065,"name":"Kor-Azor"},{"id":10000066,"name":"Perrigen Falls"},{"id":10000067,"name":"Genesis"},{"id":10000068,"name":"Verge Vendor"},{"id":10000069,"name":"Black Rise"}];
-    regions.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));  // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
-    for(i in regions)
-    {
-        //creates option tag <a class="dropdown-item" href="#">Action</a>
-        $('<a class="dropdown-item"></a>').attr("href","/dashboard/region?id="+regions[i].id).html(regions[i].name).appendTo('#dropdown_select'); 
+    /* helper functions
+    ---------------------------------------------------------------------------------------------------------------------------------------
+    */
+    // reset all UI elements like removing selector, closing side-menu, hiding popovers
+    function resetUI(){
+        $('circle[data-node-type="solar_system"]').popover('hide');                     // close popover
+        $("#mySidenav").stop().animate({right: '-300px'});                                     // hide sidebar
+        $("#report_systemname").removeClass();                                          // remove sidebar classes
+        $('[data-type="selector"]').remove();                                           // remove ring selector
+        resetForm($('#report'));                                                                    // reset form
     }
 
+    function fillSidebar(sys_id, sys_name, sys_sec){
+        $("#report_systemname").html("System: " + sys_name + " (" + sys_sec + ")");     // Set Title
+        $("#report_systemname").addClass("null-sec");                                   // Color in Security
+        $("#report_systemname").attr("data-node-id", sys_id);                           // save System ID
+        $("#report_systemname").attr("data-node-name", sys_name);                       // save System Name
+    }
 
-    // SOCKET.io Handling ----------------------------------------------------------------------------------------
-    socket.emit('GET_MSG_ALL', '');                                             // inital request to send all messages
+    function showSidebar(){
+        $("#mySidenav").stop().animate({right: '0px'});                                        // move sidebar in
+    }
 
-    function updateData(msg){
-        for (i in msg){
-            alert_data.push(msg[i]);                // push all to array of alerts                       
+    function hideSidebar(){
+        $("#mySidenav").stop().animate({right: '-300px'});                                     // move sidebar out
+    }
 
-            $('#messages').append(JSON.stringify(msg[i]) + "\n");           // chat
+    function fillPopover(msg){
 
-            // Sum Calculation
-            const sum_number = alert_data                                           // https://stackoverflow.com/questions/52038271/how-to-sum-values-in-typescript-array-based-on-array-items-property
-                    .filter(item => item.message.id === msg[i].message.id)
-                    .reduce((sum, current) => sum + current.message.number, 0);
-            
-            // Time Calculation
-            var changed =  DateTime.fromISO(msg[i].dateChanged).toRelative({ unit: "minutes", locale: "en" });
-            var changed_small = changed.split(" ");
-            var changed_final = changed_small[0] + "m " + changed_small[2];
+        $('#drag_part').attr("data-msg-id", function(){
+            return msg._id;
+        });
 
-            // tooltip updates (showing and data)
-            var title = '<span class="text-danger font-weight-bolder">' + sum_number +'</span><span style="font-size: 10px"> (' + changed_final +')</span>';
-            $('circle[data-node-id="' + msg[i].message.id + '"]').attr("data-original-title", title);
-            $('circle[data-node-id="' + msg[i].message.id + '"]').tooltip('show');
-
-            // popover updates (data)
-            var content = $('circle[data-node-id="' + msg[i].message.id + '"]').attr("data-content");
-            content = content + '<div class="container border border-dark"><div class="row">';
-            content = content + '<div class="col-auto">';
-            if (msg[i].message.gatecamp == true) {
-                content = content + '<span class="text-warning font-weight-bolder">!!! </span><img src="/media/stargate.png"> ';
-            }
-            if (msg[i].message.bubble == true) {
-                content = content + '<span class="text-warning font-weight-bolder">!!! </span><img src="/media/bubble.png"> ';
-            }
-            if (msg[i].message.shiptype.u > 0) {
-                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.u + 'x</span><span style="width: 16px; height: 16px;" class="fas fa-question" aria-hidden="true"></span> ';
-            }
-            if (msg[i].message.shiptype.f > 0) {
-                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.f + 'x</span><img src="/media/frigate.png"> ';
-            }
-            if (msg[i].message.shiptype.d > 0) {
-                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.d + 'x</span><img src="/media/destroyer.png"> ';
-            }
-            if (msg[i].message.shiptype.c > 0) {
-                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.c + 'x</span><img src="/media/cruiser.png"> ';
-            }
-            if (msg[i].message.shiptype.bc > 0) {
-                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.bc + 'x</span><img src="/media/battlecruiser.png"> ';
-            }
-            if (msg[i].message.shiptype.bs > 0) {
-                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.bs + 'x</span><img src="/media/battleship.png"> ';
-            }
-            if (msg[i].message.shiptype.i > 0) {
-                content = content + '<span class="text-danger font-weight-bolder">' + msg[i].message.shiptype.i + 'x</span><img src="/media/miningbarge.png"> ';
-            }
-            if (msg[i].message.loc.length > 0) {
-                content = content + '<span class="text-primary font-weight-bolder">@' + msg[i].message.loc + '</span> ';
-            }
-            content = content + '</div></div><div class="row"><div class="col-auto d-flex justify-content-start">';
-            content = content + '<img src="https://cdn.discordapp.com/avatars/<%= discordId %>/<%= avatar %>.png" width="20" height="20" class="rounded-circle" alt="<%= username %>#<%= discriminator %>" loading="lazy" data-toggle="tooltip" data-placement="bottom" title="<%= username %>#<%= discriminator %>"> ';
-            content = content + '&nbsp;(' + changed_final + ') ';
-            content = content + '</div><div class="col d-flex justify-content-end">';
-            content = content + '<a id="edit_report" class="btn btn-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Edit Report"><span class="fas fa-edit" aria-hidden="true"></span></a> ';
-            content = content + '<a id="delete_report" data-msg-id="' + msg[i]._id + '" data-node-id="' + msg[i].message.id + '" class="btn btn-danger btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Delete Report"><span class="fas fa-trash-alt" aria-hidden="true"></span></a> ';
-            content = content + '</div>';
-            content = content + '</div></div><br>';
-            
-            $('circle[data-node-id="' + msg[i].message.id + '"]').attr("data-content", content);
-            
+        var avatar = '';
+        if (msg.message.avatar == ''){
+            avatar = '<img src="https://cdn.discordapp.com/embed/avatars/0.png" width="20" height="20" class="rounded-circle" loading="lazy" data-toggle="tooltip" data-placement="bottom" title="' + msg.message.username + '"> ' + msg.message.username
+        } else {
+            avatar = '<img src="https://cdn.discordapp.com/avatars/' + msg.message.discordId + '/' + msg.message.avatar + '.png" width="20" height="20" class="rounded-circle" loading="lazy" data-toggle="tooltip" data-placement="bottom" title="' + msg.message.username + '"> ' + msg.message.username;
         }
+        $('#pop_pic').html(avatar);
+        $('#pop_time').html('(' + convertDateTime(msg.dateChanged) + ')');
+
+        $('#pop_threat').html(function(){
+            var content = '';
+            if (msg.message.gatecamp == true) {
+                content = content + '<span class="text-danger font-weight-bolder">!!! </span><img src="/media/stargate.png"> ';
+            }
+            if (msg.message.stationcamp == true) {
+                content = content + '<span class="text-danger font-weight-bolder">!!! </span><img src="/media/station.png"> ';
+            }
+            if (msg.message.bubble == true) {
+                content = content + '<span class="text-danger font-weight-bolder">!!! </span><img src="/media/bubble.png"> ';
+            }
+            return content;
+        });     
+
+        $('#pop_ships').html(function(){
+            var content = '';
+            if (msg.message.shiptype.u > 0) {
+                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.u + 'x</span><strong> ?</strong></div>';
+            }
+            if (msg.message.shiptype.f > 0) {
+                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.f + 'x</span><img src="/media/frigate.png"></div>';
+            }
+            if (msg.message.shiptype.d > 0) {
+                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.d + 'x</span><img src="/media/destroyer.png"></div>';
+            }
+            if (msg.message.shiptype.c > 0) {
+                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.c + 'x</span><img src="/media/cruiser.png"></div>';
+            }
+            if (msg.message.shiptype.bc > 0) {
+                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.bc + 'x</span><img src="/media/battlecruiser.png"></div>';
+            }
+            if (msg.message.shiptype.bs > 0) {
+                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.bs + 'x</span><img src="/media/battleship.png"></div>';
+            }
+            if (msg.message.shiptype.i > 0) {
+                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.i + 'x</span><img src="/media/miningbarge.png"></div>';
+            }
+            return content;
+        });
+
+        $('#pop_buttons').html(function(){
+            var content = '';
+            content = content + '<a data-id="delete_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-danger btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Delete Report"><span class="fas fa-trash-alt" aria-hidden="true"> Archive</span></a>';
+            content = content + '<a data-id="edit_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Edit Report"><span class="fas fa-edit" aria-hidden="true"> Edit</span></a>';
+            content = content + '<a data-id="move_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Move Report"><span class="fas fa-expand-arrows-alt" aria-hidden="true"> Move</span></a>';
+            return content;
+        });
+
+        $('#pop_location').html(function(){
+            if (msg.message.loc.length > 0) {
+                return '<span class="text-warning font-weight-bolder">@: <span class="text-white font-weight-normal">' + msg.message.loc + '</span></span> ';
+            } else {
+                return null;
+            }
+        });
+
+        $('#pop_comment').html(function(){
+            if (msg.message.comment.length > 0) {
+                return '<span class="text-warning font-weight-bolder">txt: <span class="text-white font-weight-normal">' + msg.message.comment + '</span></span> ';
+            } else {
+                return null;
+            }
+        });
+
+        return $('#popover_content').html();
     }
 
-    socket.on('SEND_MSG', function(msg){       
-        //recieving messages
-            updateData(msg);   
+    function showPopover(el){
+        el.popover('show');                                                             // show popover on element
+    }
+
+    function hidePopover(el){
+        el.popover('hide');                                                             // hide popover on element
+    }
+
+    function refreshTooltips(node_id){
+        $('circle[data-node-id="' + node_id + '"]').tooltip('hide');                     // hide it
+        $('circle[data-node-id="' + node_id + '"]').tooltip('show');                     // show it
+    }
+
+    function addSelector(sys_id, solar_sys_x, solar_sys_y){
+        var solar_sys = d3.selectAll('g[data-node-id="' + sys_id + '"]')                // select current solar system
+            .insert('circle', ":first-child")                                           // add a child in front
+            .attr("data-type", "selector")                                              // define type = selector
+            .attr("cx", solar_sys_x)                                                    // x coordinate
+            .attr("cy", solar_sys_y)                                                    // y coordinate
+            .attr("r", 22)                                                              // radius
+            .style("fill-opacity", 0.0)                                                 // no fill opacity
+            .style("stroke", "#d10f0f")                                                 // ring line color
+            .style("stroke-width", 4);                                                  // ring thickness
+    }
+
+    function updateData(){
+
+        const unique_id = new Set(alert_data.map(item => item.message.id));                                     // alerts with same id
+        
+        for (id of unique_id){
+            const alerts_for_id = alert_data.filter(item => item.message.id === id)
+            
+            content = '<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm"  style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a></div>';
+            
+            for (j in alerts_for_id){                  
+                const sum_number = alert_data                                                               
+                        .filter(item => item.message.id === id)
+                        .reduce((sum, result) => sum + result.message.number, 0);
+
+                d3.selectAll('circle[data-node-id="' + id + '"]').style("fill", "#d10f0f");  // fill circle red
+                d3.select('path[data-node-id="' + id + '"]').style("fill", "#801d1d");       // color background
+
+                const latest_date = alert_data                                                               
+                        .filter(item => item.message.id === id)
+                        .sort((a,b) => new Date(b.dateChanged).getTime() - new Date(a.dateChanged).getTime())[0];
+                var title = '<span class="text-danger font-weight-bolder">' + sum_number +'</span><span style="font-size: 10px"> (' + convertDateTime(latest_date.dateChanged) +')</span>';  // tooltip updates (showing and data)
+             
+                $('circle[data-node-id="' + id + '"]').attr("data-original-title", title);
+                $('circle[data-node-id="' + id + '"]').tooltip('show');
+                
+                content = content + fillPopover(alerts_for_id[j]);
+                $('circle[data-node-id="' + id + '"]').attr("data-content", content);
+            }
+        }        
+    }
+
+    function resetForm($form) {                                                                 
+        $form.find('input:text, input:password, input:file, select, textarea').val(0);
+        $('#report_location').val('');
+        $('#report_comment').val('');
+        $form.find('input:radio, input:checkbox')
+            .prop('checked',false).prop('selected',false);
+        $("#report_send").attr("data_type", "save");
+        $("#report_send").attr("data-msg-id", "");
+    }
+
+    function createDrag(move_alert, drag_id){
+        drag_template = $('#drag_item');
+        var content = $('div#drag_part[data-msg-id="' + drag_id + '"]').html();
+        drag_template.removeClass("invisible");
+        drag_template.html(content);
+    }
+
+    function removeDrag(){
+        drag_template = $('#drag_item');
+        move_alert = [];
+        drag_template.addClass("invisible");
+        drag_template.html();
+        drag_template = null;
+    }
+
+    function convertDateTime(datetime){
+            const changed =  DateTime.fromISO(datetime).minus({ seconds: 10 }).toRelative({ unit: "minutes", locale: "en" });
+            const changed_small = changed.split(" ");
+            const changed_final = changed_small[0] + "m " + changed_small[2];
+            return changed_final;
+    }
+
+    function getRegionNameFromId(id){
+        const region_found = sys_reg_data.find(function (data) {
+            if (data.region_id == id){
+                return data.region_name;
+            } 
+        });
+        return region_found.region_name;
+    }
+    /* helper functions
+    ---------------------------------------------------------------------------------------------------------------------------------------
+    */
+
+    /* socket.io functions
+    delegate click event from the document as popovers are created dynamically and have initially no events bound - https://stackoverflow.com/questions/54618503/how-to-click-on-a-link-inside-the-data-content-of-a-pop-over
+    ---------------------------------------------------------------------------------------------------------------------------------------
+    */
+    $(document).on("click", '[data-id="open_report"]', function(event) {
+        event.preventDefault(); 
+        resetForm($('#report'));      
+        showSidebar();                                            
     });
 
-    socket.on('SEND_MSG_ALL', function(msg){       
-        //recieving messages
-            alert_data = [];        // rest array
-            $('circle[data-node-type="solar_system"]').attr("data-content", '<div class="d-flex justify-content-center"><a id="open_report" class="btn btn-warning btn-sm"  style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a></div><br>');
-            $('circle[data-node-type="solar_system"]').tooltip('hide'); // if there is no message hide remaining one
-            $('circle[data-node-type="solar_system"]').popover('hide'); // hide open popvers as well
-            updateData(msg);   
+    $(document).on("click", '[data-id="delete_report"]', function(event) {
+        event.preventDefault();
+        socket.emit('DEL_MSG', $(this).attr("data-msg-id"));
+        var node_id = $(this).attr("data-node-id");
+        refreshTooltips(node_id);
+        var all_solar_systems = $('circle[data-node-type="solar_system"]');
+        hidePopover(all_solar_systems);        
+    });
+
+    $(document).on("click", '[data-id="edit_report"]', function(event) {
+        event.preventDefault();
+        var alert = alert_data.filter(item => item._id == $(this).attr("data-msg-id"));
+        $("#report_unknown_count").val(alert[0].message.shiptype.u);
+        $("#report_frigate_count").val(alert[0].message.shiptype.f);
+        $("#report_destroyer_count").val(alert[0].message.shiptype.d);
+        $("#report_cruiser_count").val(alert[0].message.shiptype.c);
+        $("#report_bc_count").val(alert[0].message.shiptype.bc);
+        $("#report_bs_count").val(alert[0].message.shiptype.bs);
+        $("#report_barge_count").val(alert[0].message.shiptype.i);
+        $("#report_location").val(alert[0].message.loc);
+        $("#report_comment").val(alert[0].message.comment);
+        $("#report_gatecamp").prop("checked", alert[0].message.gatecamp);
+        $("#report_stationcamp").prop("checked", alert[0].message.stationcamp);
+        $("#report_bubble").prop("checked", alert[0].message.bubble);
+        $("#report_send").attr("data_type", "update");
+        $("#report_send").attr("data-msg-id", $(this).attr("data-msg-id"));
+        showSidebar();               
+    });
+
+    $(document).on("click", '[data-id="move_report"]', function(event) {
+        event.preventDefault();
+        drag_id = $(this).attr("data-msg-id");
+        move_alert = alert_data.filter(item => item._id == drag_id);
+        createDrag(move_alert, drag_id);
+        resetUI();          
+    });
+
+    $(document).on("mousemove", function(e) {
+        if (typeof move_alert[0] !== "undefined") {
+            drag_template.offset({'top': e.clientY + 5, 'left': e.clientX + 5 });
+        }
     });
 
     // Report Form is sent
     $("#report").submit(function(e) {
-        e.preventDefault(); // prevents page reloading
-        node_id = $("#report_systemname").attr("data-node-id");
-        node_name = $("#report_systemname").attr("data-node-name");
-        unknown_val = $("#report_unknown_count").val();
-        frigate_val = $("#report_frigate_count").val();
-        destroyer_val = $("#report_destroyer_count").val();
-        cruiser_val = $("#report_cruiser_count").val();
-        battlecruiser_val = $("#report_bc_count").val();
-        battleship_val = $("#report_bs_count").val();
-        miningbarge_val = $("#report_barge_count").val();
-        sum = Number(unknown_val) + Number(frigate_val) + Number(destroyer_val) + Number(cruiser_val) + Number(battlecruiser_val) + Number(battleship_val) + Number(miningbarge_val);
-        at = $("#report_location").val();
-        gatecamp = $("#report_gatecamp").prop("checked");
-        bubble = $("#report_bubble").prop("checked");
+        e.preventDefault(); 
+        msg_id              = $("#report_send").attr("data-msg-id");
+        console.log(msg_id);
+        node_id             = $("#report_systemname").attr("data-node-id");
+        node_name           = $("#report_systemname").attr("data-node-name");
+        unknown_val         = $("#report_unknown_count").val();
+        frigate_val         = $("#report_frigate_count").val();
+        destroyer_val       = $("#report_destroyer_count").val();
+        cruiser_val         = $("#report_cruiser_count").val();
+        battlecruiser_val   = $("#report_bc_count").val();
+        battleship_val      = $("#report_bs_count").val();
+        miningbarge_val     = $("#report_barge_count").val();
+        sum                 = Number(unknown_val) + Number(frigate_val) + Number(destroyer_val) + Number(cruiser_val) + Number(battlecruiser_val) + Number(battleship_val) + Number(miningbarge_val);
+        at                  = $("#report_location").val();
+        comment             = $("#report_comment").val();
+        gatecamp            = $("#report_gatecamp").prop("checked");
+        stationcamp         = $("#report_stationcamp").prop("checked");
+        bubble              = $("#report_bubble").prop("checked");
+        
         message = {
-            "id" : node_id,
-            "system" : node_name,
-            "type" : "red",
-            "number" : sum,
-            "loc" : at, 
+            "id": node_id,
+            "system": node_name,
+            "type": "enemy",
+            "number": sum,
+            "loc": at, 
+            "comment": comment, 
             "shiptype" : {
                 "u": unknown_val,
                 "f": frigate_val,
@@ -522,36 +937,68 @@ $(function() {
                 "i": miningbarge_val
             },
             "gatecamp": gatecamp,
+            "stationcamp": stationcamp,
             "bubble": bubble,
-            "uid" : uid
+            "discordId": uid,
+            "avatar": avatar,
+            "username": username,
+            "discriminator": discriminator
         };
-        socket.emit('SAVE_MSG', message);
-        console.log(message);
-        // reset form
-        function resetForm($form) {
-            $form.find('input:text, input:password, input:file, select, textarea').val(0);
-            $('#report_location').val('');
-            $form.find('input:radio, input:checkbox')
-                .prop('checked',false).prop('selected',false);
+        
+        var send_type = $("#report_send").attr("data_type");
+
+        if(send_type == "save") {
+            socket.emit('SAVE_MSG', message);
         }
-        resetForm($('#report'));
-        // close side menu
-        $("#mySidenav").animate({right: '-250px'});
-        // close popovers
-        $('circle[data-node-type="solar_system"]').popover('hide');
+
+        if(send_type == "update") {
+            socket.emit('EDIT_MSG', msg_id, message);
+        }
+        
+        resetForm($('#report'));                                                                    // reset form
+        hideSidebar();                                                                              // close side menu
+        hidePopover($('circle[data-node-type="solar_system"]'))                                     // close popovers                                                                  
+        
+        //$('circle[data-node-type="solar_system"]').popover('hide');
         return false;
     });
-    // -----------------------------------------------------------------------------------------------------------
 
+    socket.on('SEND_MSG', function(msg){                                                    //recieving messages    
+            alert_data.push(msg);                                                           // push all to array of alerts 
+            updateData();   
+    });
 
+    socket.on('SEND_MSG_ALL', function(msg){                                                //recieving ALL messages
+            alert_data = [];                                                                // rest array
+            alert_data = msg;
+            $('circle[data-node-type="solar_system"]').attr("data-content", '<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm"  style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a></div>');
+            $('circle[data-node-type="solar_system"]').tooltip('hide');                     // if there is no message hide remaining one
+            $('circle[data-node-type="solar_system"]').popover('hide');                     // hide open popvers as well
+            d3.selectAll('circle[data-node-type="solar_system"]').style("fill", "#000000"); // reset fill color
+            d3.selectAll('path').style("fill", "#191d21");                                  // reset fill color
+            d3.selectAll('path[data-node-rid="' + region + '"]').style("fill", "#1c2c3d");        // reset fill color
+            updateData();   
+    });
 
-    
+    socket.on('GET_SYS_REG_DATA', function(msg){                                            //recieving ALL system and region data
+            sys_reg_data = msg;  
+            region_name = getRegionNameFromId(region);
+    });
+    /* socket.io functions
+    ---------------------------------------------------------------------------------------------------------------------------------------
+    */
 
-    
-
+    /* regular updates on popovers and tooltips to update DateTime
+    ---------------------------------------------------------------------------------------------------------------------------------------
+    */
+    function updateDateTime(){
+        updateData(alert_data);
+    }
+    setInterval(updateDateTime, 1000 * 10); // every 10 sec
+    /* regular updates on popovers and tooltips to update DateTime
+    ---------------------------------------------------------------------------------------------------------------------------------------
+    */
 });
-
-
 
 </script>
 

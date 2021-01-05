@@ -1,4 +1,4 @@
-<nav class="navbar navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <a class="navbar-brand" href="/dashboard">
     <% guilds.forEach(guild => { %>
     <% if (guild.name == whitelistAlliance) { %>
@@ -9,35 +9,56 @@
     <% }) %>
     - <span class="badge badge-danger">DEFCON</span>
   </a>
-  <form class="form-inline" action="/auth/logout">
-    <img src="https://cdn.discordapp.com/avatars/<%= discordId %>/<%= avatar %>.png" width="30" height="30"
-      class="rounded-circle" alt="" loading="lazy">
-    &nbsp;
-    <span class="align-middle font-weight-bold"><%= username %>#<%= discriminator %></span>
-    &nbsp;
-    <button type="submit" class="btn btn-danger btn-small">
-      <span class="fab fa-discord" aria-hidden="true"></span> Logout
-    </button>
-  </form>
-</nav>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
 
-<ul class="nav nav-tabs">
-  <li class="nav-item">
-    <a class="nav-link" href="/dashboard/overview">Universe</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link active" href="/dashboard/region?id=10000060">Region</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">Fleet Ops</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">PvE</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">Industry</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">Admin</a>
-  </li>
-</ul>
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item" id="universe">
+        <a class="nav-link" href="/dashboard/overview">Universe</a>
+      </li>
+      <li class="nav-item dropdown" id="intel">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Intel
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="/dashboard/region?id=10000060">Delve</a>
+          <a class="dropdown-item" href="/dashboard/region?id=10000058">Fountain</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">others possible as well</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link disabled" href="#">Fleet Ops</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link disabled" href="#">PvE Ops</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link disabled" href="#">Industry Ops</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link disabled" href="#">PI Tool</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link disabled" href="#">Reporting</a>
+      </li>
+    </ul>
+    <form class="form-inline" action="/auth/logout">
+      <% if (avatar == null) { %>
+        <img src="https://cdn.discordapp.com/embed/avatars/0.png " width="30" height="30"
+          class="rounded-circle" alt="" loading="lazy">
+      <% } else { %>
+        <img src="https://cdn.discordapp.com/avatars/<%= discordId %>/<%= avatar %>.png" width="30" height="30"
+          class="rounded-circle" alt="" loading="lazy">
+      <% } %>
+      &nbsp;
+      <span class="align-middle font-weight-bold"><%= username %>#<%= discriminator %></span>
+      &nbsp;
+      <button type="submit" class="btn btn-danger btn-small">
+        <span class="fab fa-discord" aria-hidden="true"></span> Logout
+      </button>
+    </form>
+  </div>
+</nav>

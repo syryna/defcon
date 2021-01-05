@@ -28,6 +28,14 @@ const UserSchema = new mongoose.Schema({
     avatar: {
         type: String
     },
+    type: {
+        type: Number,
+        required: true
+    },
+    locked: {
+        type: Boolean,
+        required: true
+    },
     lastUpdate: {
         type: Date,
         required: true

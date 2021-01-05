@@ -22,6 +22,9 @@ const messagesSchema = new mongoose.Schema({
         loc: {
             type: String
         },
+        comment: {
+            type: String
+        },
         shiptype: {
             u: {
                 type: Number
@@ -49,20 +52,35 @@ const messagesSchema = new mongoose.Schema({
             type: Boolean,
             reuqired: true
         },
+        stationcamp: {
+            type: Boolean,
+            reuqired: true
+        },
         bubble: {
             type: Boolean,
             reuqired: true
         },
-        uid: {
+        discordId: {
             type: String,
             required: true
-        }
+        },
+        avatar: {
+            type: String
+        },
+        username: {
+            type: String,
+            required: true
+        },
+        discriminator: {
+            type: String,
+            required: true
+        },
     },
     active: {
         type: Boolean,
         required: true
     },
-    discordIdCreated: {
+    usernameCreated: {
         type: String,
         required: true
     },
@@ -71,7 +89,7 @@ const messagesSchema = new mongoose.Schema({
         required: true,
         default: Date.now
     },
-    discordIdChanged: {
+    usernameChanged: {
         type: String,
         required: true
     },

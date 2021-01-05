@@ -7,16 +7,20 @@
 <div id="map_container">
 </div>
 
-<div id="map_buttons">
-    <button type="button" class="btn btn-secondary btn-sm" id="zoom_reset" data-toggle="tooltip" data-placement="bottom"
-        title="Reset Position and Zoom"><span class="fas fa-expand" aria-hidden="true"></span></button>
-    <button type="button" class="btn btn-secondary btn-sm" id="center" data-toggle="tooltip" data-placement="bottom"
-        title="Center the Map"><span class="fas fa-compress-arrows-alt" aria-hidden="true"></span></button>
+<div id="map_buttons" class="input-group">
+    <button type="button" class="btn btn-dark btn-sm" id="zoom_reset" data-toggle="tooltip" data-placement="bottom"
+        title="Reset Position and Zoom"><span class="fas fa-expand" aria-hidden="true"></span></button>&nbsp;
+    <button type="button" class="btn btn-dark btn-sm" id="center" data-toggle="tooltip" data-placement="bottom"
+        title="Center the Map"><span class="fas fa-compress-arrows-alt" aria-hidden="true"></span></button>&nbsp;
 </div>
 
 
 <script>
     $(function () {
+
+        $('.nav-item').removeClass('active');                                       // reset aktive menu item
+        $('#universe').addClass('active');                                             // set active menu item  
+
         // DIV dimensions
         var w = $('#map_container').width();
         var h = $('#map_container').height();
