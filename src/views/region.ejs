@@ -461,7 +461,7 @@ $(function() {
                 container: 'body', 
                 placement:'bottom', 
                 title: '', 
-                content:'dummy', 
+                content:'<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm"  style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a></div>', 
                 html: true, 
                 sanitize: false, 
                 template: $('#popover_template').html()
@@ -536,7 +536,7 @@ $(function() {
                 var sys_id = $(this).attr("data-node-id");
                 var solar_sys_x = $(this).attr("cx");
                 var solar_sys_y = $(this).attr("cy");
-
+                
                 resetUI();
                 fillSidebar(sys_id, sys_name, sys_sec);
                 addSelector(sys_id, solar_sys_x, solar_sys_y);
