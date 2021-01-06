@@ -156,7 +156,6 @@
     </form>
 </div>
 
-
 <!-- container for the popover -->
 <div id="popover_template" class="invisible">
     <div class="popover" role="tooltip">
@@ -535,8 +534,7 @@ $(function() {
                 var sys_name = $(this).attr("data-node-name");
                 var sys_id = $(this).attr("data-node-id");
                 var solar_sys_x = $(this).attr("cx");
-                var solar_sys_y = $(this).attr("cy");
-                
+                var solar_sys_y = $(this).attr("cy");            
                 resetUI();
                 fillSidebar(sys_id, sys_name, sys_sec);
                 addSelector(sys_id, solar_sys_x, solar_sys_y);
@@ -676,9 +674,9 @@ $(function() {
         } else {
             avatar = '<img src="https://cdn.discordapp.com/avatars/' + msg.message.discordId + '/' + msg.message.avatar + '.png" width="20" height="20" class="rounded-circle" loading="lazy" data-toggle="tooltip" data-placement="bottom" title="' + msg.message.username + '"> ' + msg.message.username;
         }
+        
         $('#pop_pic').html(avatar);
         $('#pop_time').html('(' + convertDateTime(msg.dateChanged) + ')');
-
         $('#pop_threat').html(function(){
             var content = '';
             if (msg.message.gatecamp == true) {
