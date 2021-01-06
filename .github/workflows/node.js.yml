@@ -24,6 +24,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm i
-    - run: cp /projects/action_runner/.env /project/actions-runner/_work/defcon/defcon/src
+    - run: cp /project/action_runner/.env /project/actions-runner/_work/defcon/defcon/src
     #- run: npm run build --if-present
     #- run: npm test
