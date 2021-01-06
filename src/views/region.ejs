@@ -506,7 +506,8 @@ $(function() {
         path.on('click', function(){
             x = (d3.event.x - zoomTrans.x)/zoomTrans.scale;
             y = (d3.event.y - zoomTrans.y)/zoomTrans.scale;
-            console.log('x: ' +  x + '\ty: '+  y);              
+            console.log('x: ' +  x + '\ty: '+  y); 
+            console.log('test');
             resetUI();
         })
 
@@ -674,7 +675,7 @@ $(function() {
         } else {
             avatar = '<img src="https://cdn.discordapp.com/avatars/' + msg.message.discordId + '/' + msg.message.avatar + '.png" width="20" height="20" class="rounded-circle" loading="lazy" data-toggle="tooltip" data-placement="bottom" title="' + msg.message.username + '"> ' + msg.message.username;
         }
-        
+
         $('#pop_pic').html(avatar);
         $('#pop_time').html('(' + convertDateTime(msg.dateChanged) + ')');
         $('#pop_threat').html(function(){
