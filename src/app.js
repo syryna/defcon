@@ -77,6 +77,7 @@ var io = require('socket.io')(server);
 
 const messages = require('./models/messages');
 const inv_solar_systems = require('./models/inv_solar_systems');
+const solar_correct = require('./models/inv_solar_correct');
 const { createConnection } = require('net');
 
 // Socket handling
@@ -85,33 +86,38 @@ io.on('connection', (socket) => {
     // Get Connection details
     logger.app.log('info', `socket.io - client: ${socket.id} - ${socket.request.user} connected`);
 
-    // initial connect from a new browser
-    socket.on('GET_MSG_ALL', (msg) => {
-        // load async node data from DB
-        async function findMessageData() {
-            message_data = await messages.find({ "active": true });
-            return message_data;
-        }
-        // start when promise is available and send messages
-        findMessageData().then((message_data) => {
-            if (message_data.length == 0) {
-                logger.app.log('info', `MongoDB - messages - No record found !!!`);
-                var message_history = [];
-                socket.emit('SEND_MSG_ALL', message_history);
-                logger.app.log('info', `socket.io - INIT: message with ${message_data.length} items sent to client: ${socket.id}`);
-                return
-            } else {
-                logger.app.log('info', `MongoDB - messages - ${Object.keys(message_data).length} records from messages read`);
-                var message_history = [];
-                for (i in message_data) {
-                    message_history.push(message_data[i]);
-                }
-                socket.emit('SEND_MSG_ALL', message_history);
-                logger.app.log('info', `socket.io - INIT: message with ${message_data.length} items sent to client: ${socket.id}`);
+    socket.on('COORDS', (msg, type) => {
+        if (type = "-100"){ // Admins only
+            // var x = (2686.0478560044116-b)/m;
+            const x = (msg.x - msg.x_b)/msg.x_m;
+            const y = (msg.y - msg.y_b)/msg.y_m;
+
+            async function updateSystemCorrect(msg) {
+                updateSystem_msg = await solar_correct.findOneAndUpdate({
+                    id: msg.sys_id
+                },
+                {
+                    id: msg.sys_id,
+                    coords: {
+                        x: x,
+                        z: -y
+                    },
+                    label: msg.label
+                }, 
+                {
+                    upsert: true,
+                    new: true
+                });
+                return updateSystem_msg;
             }
-        });
+            
+            updateSystemCorrect(msg).then((result) => {
+                logger.app.log('info', `MongoDB - inv_solar_corrects - system corrected - ${JSON.stringify(result)}`);
+            });
+        } 
     });
 
+    // Initial connect and sent all system and region data
     socket.on('GET_SYS_REG_DATA', (msg) => {
         // load async solar system data from DB
         async function findSolarSystemData() {
@@ -141,8 +147,34 @@ io.on('connection', (socket) => {
         findSolarSystemData().then((solar_system_data) => {
             socket.emit('GET_SYS_REG_DATA', solar_system_data);
             logger.app.log('info', `socket.io - INIT: solar and region data items sent to client: ${socket.id}`);
+        }); 
+    });
+
+    // initial connect from a new browser
+    socket.on('GET_MSG_ALL', (msg) => {
+        // load async node data from DB
+        async function findMessageData() {
+            message_data = await messages.find({ "active": true });
+            return message_data;
+        }
+        // start when promise is available and send messages
+        findMessageData().then((message_data) => {
+            if (message_data.length == 0) {
+                logger.app.log('info', `MongoDB - messages - No record found !!!`);
+                var message_history = [];
+                socket.emit('SEND_MSG_ALL', message_history);
+                logger.app.log('info', `socket.io - INIT: message with ${message_data.length} items sent to client: ${socket.id}`);
+                return
+            } else {
+                logger.app.log('info', `MongoDB - messages - ${Object.keys(message_data).length} records from messages read`);
+                var message_history = [];
+                for (i in message_data) {
+                    message_history.push(message_data[i]);
+                }
+                socket.emit('SEND_MSG_ALL', message_history);
+                logger.app.log('info', `socket.io - INIT: message with ${message_data.length} items sent to client: ${socket.id}`);
+            }
         });
-        
     });
 
     // Store sent data

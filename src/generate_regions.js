@@ -15,6 +15,7 @@ const logger = require('./logger/logger');
 const inv_regions = require('./models/inv_regions');
 const inv_solar_systems = require('./models/inv_solar_systems');
 const inv_map_add = require('./models/inv_map_add');
+const solar_correct = require('./models/inv_solar_correct');
 const {
     ConsoleTransportOptions
 } = require('winston/lib/winston/transports');
@@ -55,6 +56,12 @@ db.once('open', function () {
         return map_add_data;
     }
 
+    // load async edge data from DB
+    async function findSolarCorrectData() {
+        solar_correct_data = await solar_correct.find({});
+        return solar_correct_data;
+    }
+
     // start when promise is available
     findRegionData().then((regions_data) => {
         if (regions_data.length == 0) {
@@ -85,32 +92,43 @@ db.once('open', function () {
         }
     });
 
-    regions_to_process = [
-        10000001, 10000003, 10000004, 10000005, 10000006,
-        10000007, 10000008, 10000009, 10000010, 10000002,
-        10000011, 10000012, 10000013, 10000015, 10000014,
-        10000016, 10000017, 10000018, 10000019, 10000020,
-        10000021, 10000022, 10000023, 10000025, 10000027,
-        10000028, 10000029, 10000030, 10000031, 10000032,
-        10000033, 10000034, 10000035, 10000036, 10000037,
-        10000038, 10000039, 10000040, 10000041, 10000042,
-        10000043, 10000044, 10000045, 10000046, 10000047,
-        10000048, 10000049, 10000050, 10000051, 10000052,
-        10000053, 10000054, 10000055, 10000056, 10000057,
-        10000058, 10000059, 10000060, 10000061, 10000062,
-        10000063, 10000064, 10000065, 10000066, 10000067,
-        10000068, 10000069
-      ];  
+    // start when promise is available
+    findSolarCorrectData().then((solar_correct_data) => {
+        if (solar_correct_data.length == 0) {
+            logger.app.log('info', `inv_solar_corrects - No record found !!!`);
+            return
+        } else {
+            logger.app.log('info', `inv_solar_corrects -  ${Object.keys(solar_correct_data).length} records from inv_solar_corrects read`);
+        }
+    });
 
-    //regions_to_process = [10000060];
+    // regions_to_process = [
+    //     10000001, 10000003, 10000004, 10000005, 10000006,
+    //     10000007, 10000008, 10000009, 10000010, 10000002,
+    //     10000011, 10000012, 10000013, 10000015, 10000014,
+    //     10000016, 10000017, 10000018, 10000019, 10000020,
+    //     10000021, 10000022, 10000023, 10000025, 10000027,
+    //     10000028, 10000029, 10000030, 10000031, 10000032,
+    //     10000033, 10000034, 10000035, 10000036, 10000037,
+    //     10000038, 10000039, 10000040, 10000041, 10000042,
+    //     10000043, 10000044, 10000045, 10000046, 10000047,
+    //     10000048, 10000049, 10000050, 10000051, 10000052,
+    //     10000053, 10000054, 10000055, 10000056, 10000057,
+    //     10000058, 10000059, 10000060, 10000061, 10000062,
+    //     10000063, 10000064, 10000065, 10000066, 10000067,
+    //     10000068, 10000069
+    // ];  
+
+    regions_to_process = [10000058];
 
     // wait that both inv_regions and inv_solar_systems is ready before processing
-    Promise.all([findRegionData(), findSolarSystemData(), findMapAddData()]).then(data => {
+    Promise.all([findRegionData(), findSolarSystemData(), findMapAddData(), findSolarCorrectData()]).then(data => {
 
         // Variables
         var regions_data = data[0];
         var all_solar_systems_data = data[1];
         var map_add_data = data[2];
+        var solar_correct_data = data[3];
 
         // loop over regions and get system details
         for (reg_idx in regions_to_process) {
@@ -139,6 +157,16 @@ db.once('open', function () {
             }
             logger.app.log('info', `${region_id}  - ${all_neighbours_of_region.length} neighbours added`);
             logger.app.log('info', `${region_id}  - ${all_systems_of_region.length} systems found`);
+
+            // correct x / z coords for custom positions made by me
+            for (i in all_systems_of_region) {
+                corrected_system = solar_correct_data.filter(sys => sys.id === all_systems_of_region[i].id);
+                if (corrected_system.length != 0) {
+                    all_systems_of_region[i].center.x = corrected_system[0].coords.x;
+                    all_systems_of_region[i].center.z = corrected_system[0].coords.z;
+                    all_systems_of_region[i].label = corrected_system[0].label;
+                }    
+            }
 
             solar_systems_data = all_systems_of_region;
 
@@ -358,9 +386,21 @@ db.once('open', function () {
                 .text(function (d) { return d.name })                                                                          // enter name as label
                 .attr("data-node-id", function (d) { return d.id })                                                             // add data attribute with node id 
                 .attr("data-node-name", function (d) { return d.name })
-                .attr("x", function (d) { return scale_x(d.center.x) - 30 })                                                           // position and scale x based on data
+                .attr("x", function (d) { 
+                    if (d.label == 'right'){
+                        return scale_x(d.center.x) + 25
+                    } else {
+                        return scale_x(d.center.x) - 25
+                    }
+                })                                                           // position and scale x based on data
                 .attr("y", function (d) { return scale_y(-d.center.z) + 10 })                                                           // position and scale y based on data
-                .attr("text-anchor", "end")                                                                                     // take x,y as the middle point for the text label
+                .attr("text-anchor", function (d) { 
+                    if (d.label == 'right'){
+                        return "start"
+                    } else {
+                        return "end"
+                    }
+                })                                                                                     // take x,y as the middle point for the text label
                 .style("fill", "#ffffff")                                                                                       // color text
                 .style("fill-opacity", 0.7)                                                                                     // set transparency
                 .style("font-size", "24px")                                                                                     // set text size

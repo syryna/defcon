@@ -216,11 +216,11 @@
 </div>
 
 <!-- Search Modal -->
-<div class="modal fade" id="search_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="search_modal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h6 class="modal-title" id="exampleModalLabel">Do not know the system name? Search for it to figure out where it is located!</h6>
+                <h6 class="modal-title" id="searchModalLabel">Do not know the system name? Search for it to figure out where it is located!</h6>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -240,7 +240,38 @@
         </div>
       </div>
     </div>
-  </div>
+</div>
+
+<!-- Correct Modal -->
+<div class="modal fade" id="correct_modal" tabindex="-1" aria-labelledby="correctModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="correctModalLabel">Correct</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        <div class="modal-body">
+            <form>
+                <div class="form-group">
+                    <pre id="message" class="text-danger"></pre>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="right_check">
+                        <label class="form-check-label" for="right_check">
+                            Label right position?
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-outline-warning" id="correct_send">Save</button>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn btn-outline-warning">Search</button> -->
+        </div>
+      </div>
+    </div>
+</div>
 
 <script>
 
@@ -290,6 +321,7 @@ $(function() {
     const username = "<%= username %>";
     const discriminator = "<%= discriminator %>";
     const region = "<%= query %>";
+    const type = "<%= type %>";
     var region_name = '';
     var zoomTrans = {x:0, y:0, scale:1};
     var w = $('#map_container').width();
@@ -299,6 +331,8 @@ $(function() {
     const max_out = 0.2;
     const max_in = 2;
     var move_alert = [];
+    var last_clicked_id = '';
+    var last_clicked_sys = {};
 
     /* Initialization
     ---------------------------------------------------------------------------------------------------------------------------------------
@@ -493,20 +527,68 @@ $(function() {
         // deaktivate doubleclick
         svg.on("dblclick.zoom", null); 
 
-        // reset UI and Drag on ESC key
+        // reset UI and Drag on ESC key, move circles with Arrow keys
         document.onkeydown = function(evt) {
             evt = evt || window.event;
             if (evt.keyCode == 27) {
                 resetUI();
                 removeDrag();
             }
+            if (type < 1){
+                if (evt.keyCode == 37) {  
+                    correctSystem("left");
+                }
+                if (evt.keyCode == 38) {
+                    correctSystem("up");
+                }
+                if (evt.keyCode == 39) {
+                    correctSystem("right");
+                }
+                if (evt.keyCode == 40) {
+                    correctSystem("down");
+                }
+                if (evt.keyCode == 13) {
+                    $('#message').html(JSON.stringify(last_clicked_sys, undefined, 2));
+                    $('#correct_modal').modal('show');
+                }
+            }
         };
+        function correctSystem(direction){
+            x = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cx");
+            y = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cy");
+            x_b = background.attr('data-x-b');
+            x_m = background.attr('data-x-m');
+            y_b = background.attr('data-y-b');
+            y_m = background.attr('data-y-m');
+            last_clicked_sys = {
+                sys_id: last_clicked_id,
+                x: x,
+                y: y,
+                x_b: x_b,
+                x_m: x_m,
+                y_b: y_b,
+                y_m: y_m
+            };
+            if (direction == "left"){
+                x_old = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cx");
+                d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cx", parseFloat(x_old) - 5);
+            }
+            if (direction == "right"){
+                x_old = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cx");
+                d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cx", parseFloat(x_old) + 5);
+            }
+            if (direction == "up"){
+                y_old = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cy");
+                d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cy", parseFloat(y_old) - 5);
+            }
+            if (direction == "down"){
+                y_old = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cy");
+                d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cy", parseFloat(y_old) + 5);
+            }       
+        }
 
         // on click functions for the SVG elements
         path.on('click', function(){
-            x = (d3.event.x - zoomTrans.x)/zoomTrans.scale;
-            y = (d3.event.y - zoomTrans.y)/zoomTrans.scale;
-            console.log('x: ' +  x + '\ty: '+  y); 
             resetUI();
         })
 
@@ -527,6 +609,7 @@ $(function() {
                 removeDrag();
                 refreshTooltips(target_id);
                 refreshTooltips(source_id);
+                last_clicked_id = target_id;
             } else {
                 var sys_sec = $(this).attr("data-node-sec");
                 sys_sec = parseFloat(sys_sec);
@@ -539,6 +622,7 @@ $(function() {
                 fillSidebar(sys_id, sys_name, sys_sec);
                 addSelector(sys_id, solar_sys_x, solar_sys_y);
                 showPopover($(this)); 
+                last_clicked_id = sys_id;
             }            
         });
 
@@ -615,6 +699,22 @@ $(function() {
         $('.modal').on('hide.bs.modal', function (e) {
             $(".modal-footer").html('');
         })
+
+        // Correct
+        $('#correct_send').on('click', function(event) {
+            event.preventDefault();
+            var msg = JSON.parse($('#message').html());
+            if ($("#right_check").prop("checked") == true){
+                msg.label = 'right';
+            } else {
+                msg.label = 'left';
+            }
+            console.log(msg);
+            socket.emit('COORDS', msg, type);                                                  
+            $("#right_check").prop("checked", false);
+            $('#correct_modal').modal('toggle');
+            
+        });
 
         // initial centering
         var trans_x = (w - (svg_w)*max_out)/2; 
