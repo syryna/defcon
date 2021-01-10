@@ -11,6 +11,7 @@ const messagesSchema = new mongoose.Schema({
             type: String,
             required: true
         },
+        predecessors: [Number],
         type: {
             type: String,
             required: true

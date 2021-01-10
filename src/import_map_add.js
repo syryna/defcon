@@ -42,13 +42,59 @@ db.once('open', function () {
     //     ]
     // });
 
+    // var new_map_Add = new inv_map_add({
+    //     rid: 10000058,
+    //     add: [
+    //         "B-DBYQ",
+    //         "7-692B",
+    //         "Hophib",
+    //         "ZXB-VC"
+    //     ]
+    // });
+
+    // var new_map_Add = new inv_map_add({
+    //     rid: 10000054,
+    //     add: [
+    //         "D4KU-5",
+    //         "K4-RFZ",
+    //         "1-SMEB",
+    //         "Rafeme",
+    //         "MXYS-8",
+    //         "Agaullores",
+    //         "4-JWWQ",
+    //         "Otakod",
+    //         "Zinkon"
+    //     ]
+    // });
+
+    // var new_map_Add = new inv_map_add({
+    //     rid: 10000063,
+    //     add: [
+    //         "G-M4GK",
+    //         "CJF-1P",
+    //         "1-2J4P",
+    //         "LWX-93",
+            
+    //     ]
+    // });
+
     var new_map_Add = new inv_map_add({
-        rid: 10000058,
+        rid: 10000050,
         add: [
-            "B-DBYQ",
-            "7-692B",
-            "Hophib",
-            "ZXB-VC"
+            "UHKL-N",
+            "KFIE-Z",
+            "Z3V-1W",
+            "A-ELE2",
+            "1DH-SX",
+            "PR-8CA",
+            "Ned",
+            "3-DMQT",
+            "C3N-3S",
+            "FWST-8",
+            "SVM-3K",
+            "4-07MU",
+            "Efa",
+            "Kaira"
         ]
     });
 

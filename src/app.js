@@ -1,6 +1,8 @@
 // Modules
 require('dotenv').config();
+const https = require('https');
 const express = require('express');
+const fs = require('fs');
 const logger = require('./logger/logger');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -68,23 +70,91 @@ app.use('/dashboard', dashboardRoute);
 app.use('/forbidden', forbiddenRoute);
 
 // Express Listener
-const server = app.listen(PORT, () => {
+const server = https.createServer({
+    key: fs.readFileSync("./src/security/key.pem"),
+    cert: fs.readFileSync("./src/security/cert.pem"),
+    ca: fs.readFileSync("./src/security/ca.pem")
+},app).listen(PORT, () => {
     logger.app.log('info', `Express - Express Server listening to requests on port ${PORT}`);
 });
+// const server = app.listen(PORT, () => {
+//     logger.app.log('info', `Express - Express Server listening to requests on port ${PORT}`);
+// });
 
 // Setup socket.io
 var io = require('socket.io')(server);
 
 const messages = require('./models/messages');
+const message_activities = require('./models/message_activities');
 const inv_solar_systems = require('./models/inv_solar_systems');
 const solar_correct = require('./models/inv_solar_correct');
 const { createConnection } = require('net');
+
+// common DB functions
+async function findMessageData() {                          // reads all active Messages and returns them all
+    const message_data = await messages.find(
+        { "active": true }
+    );
+    return message_data;
+}
+
+async function findMessageActivityData() {                  // reads all message activities from last 30 min, attaches messages to the activities and returns them all
+    var date = new Date();
+    date.setMinutes(date.getMinutes() - 30);
+    const message_activity_data = await message_activities.aggregate([
+        { $match: { "date": { $gte: date } } },
+        { $lookup: { "from": "messages", "localField": "message_id", "foreignField": "_id", "as": "msg" } },
+        { $unwind: "$msg" }
+    ]);
+    return message_activity_data;
+}
+
+async function createMessage(msg){                          // creates a new message and returns it
+    const newMessage = await messages.create({
+        "message": msg,
+        "active": true,
+        "usernameCreated": msg.username,
+        "dateCreated": new Date(),
+        "usernameChanged": msg.username,
+        "dateChanged": new Date()
+    });
+    const savedMessage = await newMessage.save();
+    return savedMessage;
+}
+
+async function createMessageActivity(msg_id, username, action) {        // creates a new message activity and returns it
+    const newMessageActivity = await message_activities.create({
+        "message_id": msg_id,
+        "username": username,
+        "date": new Date(),
+        "action": action
+    });
+    const savedMessageActivity = await newMessageActivity.save();
+    return savedMessageActivity;
+    
+}
+
+async function editMessage(msg_id, msg){                                // updates a message and returns returns it
+    const updatedMessage = await messages.findByIdAndUpdate(
+        { _id: msg_id  }, 
+        { $set: { "message": msg, "usernameChanged": msg.username, "dateChanged": new Date() } }
+    );
+    return updatedMessage
+}
+
+async function archieveMessage(msg_id, username){
+    const archievedMessage = await messages.findByIdAndUpdate(            // archieves a message and returns returns it
+        { _id: msg_id },        
+        { $set: { "active": false, "usernameChanged": username, "dateChanged": new Date() } }
+    );
+    return archievedMessage;
+}
 
 // Socket handling
 io.on('connection', (socket) => {
 
     // Get Connection details
-    logger.app.log('info', `socket.io - client: ${socket.id} - ${socket.request.user} connected`);
+    logger.app.log('info', `socket.io - socket: ${socket.id} connected`);
 
     socket.on('COORDS', (msg, type) => {
         if (type = "-100"){ // Admins only
@@ -110,7 +180,7 @@ io.on('connection', (socket) => {
                 });
                 return updateSystem_msg;
             }
-            
+
             updateSystemCorrect(msg).then((result) => {
                 logger.app.log('info', `MongoDB - inv_solar_corrects - system corrected - ${JSON.stringify(result)}`);
             });
@@ -118,160 +188,154 @@ io.on('connection', (socket) => {
     });
 
     // Initial connect and sent all system and region data
-    socket.on('GET_SYS_REG_DATA', (msg) => {
-        // load async solar system data from DB
+    socket.on('GET_SYS_REG_DATA', (username) => {
         async function findSolarSystemData() {
-            all_solar_systems_data = await inv_solar_systems.aggregate([{ 
-                $lookup: {                                      // add region data to solar system (inv_solar_systems <- inv_regions)
-                    "from": "inv_regions",
-                    "localField": "region_id",
-                    "foreignField": "id",
-                    "as": "region"
-                }
-            },
-            { 
-                "$unwind": "$region"                            // unwind the nested array region : [{...,...,...}] -> {...,...,...}
-            },
-            { 
-                $project : {                                    // define the output fields (sys_id, sys_name, region_id, region_name)
-                    "id" : 1 , 
-                    "name" : 1,
-                    "region_id" : 1,
-                    "region_name" : "$region.name"
-                }
-            } 
+            all_solar_systems_data = await inv_solar_systems.aggregate([
+                { $lookup: { "from": "inv_regions", "localField": "region_id", "foreignField": "id", "as": "region" } },    // add region data to solar system (inv_solar_systems <- inv_regions)
+                { $unwind: "$region" },                                                                                     // unwind the nested array region : [{...,...,...}] -> {...,...,...}
+                { $project : { "id" : 1 , "name" : 1, "region_id" : 1, "region_name" : "$region.name" } }                   // define the output fields (sys_id, sys_name, region_id, region_name)
             ]);
             return all_solar_systems_data;
         }
-        // start when promise is available and send messages
         findSolarSystemData().then((solar_system_data) => {
             socket.emit('GET_SYS_REG_DATA', solar_system_data);
-            logger.app.log('info', `socket.io - INIT: solar and region data items sent to client: ${socket.id}`);
+            logger.app.log('info', `socket.io - [-INIT-]:       ${username} - solar and region data items sens to user`);
         }); 
     });
 
-    // initial connect from a new browser
-    socket.on('GET_MSG_ALL', (msg) => {
-        // load async node data from DB
-        async function findMessageData() {
-            message_data = await messages.find({ "active": true });
-            return message_data;
-        }
-        // start when promise is available and send messages
-        findMessageData().then((message_data) => {
-            if (message_data.length == 0) {
-                logger.app.log('info', `MongoDB - messages - No record found !!!`);
-                var message_history = [];
-                socket.emit('SEND_MSG_ALL', message_history);
-                logger.app.log('info', `socket.io - INIT: message with ${message_data.length} items sent to client: ${socket.id}`);
-                return
+    // send all active messages to client
+    socket.on('GET_MSG_ALL', (username) => {
+        findMessageData().then((messages) => {
+            var message_history = [];
+            if (messages.length == 0) {
+                logger.app.log('info', `MongoDB   - [GET ALL]:      ${username} - ${messages.length} records from (messages) read`);
             } else {
-                logger.app.log('info', `MongoDB - messages - ${Object.keys(message_data).length} records from messages read`);
-                var message_history = [];
-                for (i in message_data) {
-                    message_history.push(message_data[i]);
-                }
-                socket.emit('SEND_MSG_ALL', message_history);
-                logger.app.log('info', `socket.io - INIT: message with ${message_data.length} items sent to client: ${socket.id}`);
+                logger.app.log('info', `MongoDB   - [GET ALL]:      ${username} - ${Object.keys(messages).length} records from (messages) read`);
             }
+            for (i in messages) {
+                message_history.push(messages[i]);
+            }
+            socket.emit('SEND_MSG_ALL', message_history);
+            logger.app.log('info', `socket.io - [SEND ALL]:     ${username} - ${messages.length} items from (messages) sent to user`);  
         });
     });
 
-    // Store sent data
-    socket.on('SAVE_MSG', (msg) => {
-        const createMessage = async function(msg){
-            const newMessage = await messages.create({
-                message: msg,
-                active: true,
-                usernameCreated: msg.username,
-                dateCreated: new Date(),
-                usernameChanged: msg.username,
-                dateChanged: new Date()
-            });
-            try {
-                const savedMessage = await newMessage.save();
-                logger.app.log('info', `MongoDB - messages - saved message: ${JSON.stringify(savedMessage)}`);
-                io.emit('SEND_MSG', savedMessage);
-                logger.app.log('info', `socket.io - CREATE: saved message: ${JSON.stringify(savedMessage)}`);
-            } catch (err) {
-                logger.app.log('info', `MongoDB - messages - save failed with error: ${err}`);
-            }
-            
-        }
-        createMessage(msg);
+    // send all messages activities to client
+    socket.on('GET_MSG_ACT_ALL', (username) => {
+        findMessageActivityData().then((message_activities) => {
+            socket.emit('SEND_MSG_ACT_ALL', message_activities); 
+            logger.app.log('info', `socket.io - [SEND ACT ALL]: ${username} - ${message_activities.length} items from (messages_activities) sent`);
+        }); 
     });
 
-    // Edit data
-    socket.on('EDIT_MSG', (msg_id, msg) => {
-        const editMessage = async function(msg){
-            try {
-                const updateMessage = await messages.updateOne({ _id: msg_id }, { $set: { "message": msg, "usernameChanged": msg.username, "dateChanged": new Date() } });
-                logger.app.log('info', `MongoDB - messages - saved message: ${updateMessage.nModified}`);
-            } catch (err) {
-                logger.app.log('info', `MongoDB - messages - save failed with error: ${err}`);
-            }
-        }
-        editMessage(msg).then(() => {
-            // load async node data from DB
-            async function findMessageData() {
-                message_data = await messages.find({ "active": true });
-                return message_data;
-            }
-            // start when promise is available and send messages
-            findMessageData().then((message_data) => {
-                if (message_data.length == 0) {
-                    logger.app.log('info', `MongoDB - messages - No record found !!!`);
+    // store a message and send to all clients
+    socket.on('SAVE_MSG', (msg, username) => {
+        createMessage(msg, username).then((savedMessage) => {
+            logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessage._id} saved in (messages)`);
+            createMessageActivity(savedMessage._id, username, 'CREATED').then((savedMessageActivity) =>{
+                logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                var MessageActivity = savedMessageActivity.toObject();
+                MessageActivity.msg = savedMessage;
+                io.emit('SEND_MSG', MessageActivity, savedMessage);
+                logger.app.log('info', `socket.io - [CREATE]:       ${username} - ${savedMessage._id} in (messages) sent to all clients`);
+                logger.app.log('info', `socket.io - [CREATE]:       ${username} - ${MessageActivity._id} in (message_activities) sent to all clients`);
+            });               
+        });
+    });
+
+    // change a message and send to all clients
+    socket.on('EDIT_MSG', (msg_id, msg, username) => {
+        editMessage(msg_id, msg, username).then((updatedMessage) => {
+            logger.app.log('info', `MongoDB   - [EDIT]:         ${username} - ${updatedMessage._id} modified in (messages)`);
+            createMessageActivity(updatedMessage._id, username, "EDITED").then((savedMessageActivity) =>{
+                logger.app.log('info', `MongoDB   - [EDIT]:         ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                var MessageActivity = savedMessageActivity.toObject();
+                MessageActivity.msg = updatedMessage;
+                findMessageData().then((messages) => {
                     var message_history = [];
-                    io.emit('SEND_MSG_ALL', message_history);
-                    logger.app.log('info', `socket.io - EDIT: message with ${message_data.length} items sent to all clients`);
-                    return
-                } else {
-                    logger.app.log('info', `MongoDB - messages - ${Object.keys(message_data).length} records from messages read`);
-                    var message_history = [];
-                    for (i in message_data) {
-                        message_history.push(message_data[i]);
+                    if (messages.length == 0) {
+                        logger.app.log('info', `MongoDB   - [EDIT]:         ${username} - ${messages.length} records from (messages) read`);
+                    } else {
+                        logger.app.log('info', `MongoDB   - [EDIT]:         ${username} - ${Object.keys(messages).length} records from (messages) read`);
+                    }
+                    for (i in messages) {
+                        message_history.push(messages[i]);
                     }
                     io.emit('SEND_MSG_ALL', message_history);
-                    logger.app.log('info', `socket.io - EDIT: message with ${message_data.length} items sent to all clients`);
-                }
+                    logger.app.log('info', `socket.io - [EDIT]:         ${username} - ${messages.length} items from (messages) sent to all clients`);  
+                    findMessageActivityData().then((message_activities) => {
+                        io.emit('SEND_MSG_ACT_ALL', message_activities); 
+                        logger.app.log('info', `socket.io - [EDIT]:         ${username} - ${message_activities.length} items from (messages_activities) sent to all clients`);
+                    });
+                });
+            }); 
+        });
+    });
+
+    // archieve a message and send to all clients
+    socket.on('DEL_MSG', (msg_id, username) => {
+        archieveMessage(msg_id, username).then((archievedMessage) => {
+            logger.app.log('info', `MongoDB   - [ARCHIEVE]:     ${username} - ${archievedMessage._id} saved in (messages)`);
+            createMessageActivity(archievedMessage._id, username, "ARCHIEVED").then((savedMessageActivity) =>{
+                logger.app.log('info', `MongoDB   - [ARCHIEVE]:     ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                var MessageActivity = savedMessageActivity.toObject();
+                MessageActivity.msg = archievedMessage;
+                findMessageData().then((messages) => {
+                    var message_history = [];
+                    if (messages.length == 0) {
+                        logger.app.log('info', `MongoDB   - [ARCHIEVE]:     ${username} - ${messages.length} records from (messages) read`);
+                    } else {
+                        logger.app.log('info', `MongoDB   - [ARCHIEVE]:     ${username} - ${Object.keys(messages).length} records from (messages) read`);
+                    }
+                    for (i in messages) {
+                        message_history.push(messages[i]);
+                    }
+                    io.emit('SEND_MSG_ALL', message_history);
+                    logger.app.log('info', `socket.io - [ARCHIEVE]:     ${username} - ${messages.length} items from (messages) sent to all clients`);  
+                    findMessageActivityData().then((message_activities) => {
+                        io.emit('SEND_MSG_ACT_ALL', message_activities); 
+                        logger.app.log('info', `socket.io - [ARCHIEVE]:     ${username} - ${message_activities.length} items from (messages_activities) sent to all clients`);
+                    });
+                });
             });
         });
     });
 
-    // Delete data
-    socket.on('DEL_MSG', (id) => {
-        const deleteMessage = async function(id){
-            try {
-                const deleteMessage = await messages.updateOne({ _id: id }, { $set: { "active": false } });
-                logger.app.log('info', `MongoDB - messages - set message inactive: ${JSON.stringify(deleteMessage)}`);
-            } catch (err) {
-                logger.app.log('info', `MongoDB - messages - set message inactive error: ${err}`);
-            }
-        }
-        deleteMessage(id).then(() => {
-            // load async node data from DB
-            async function findMessageData() {
-                message_data = await messages.find({ "active": true });
-                return message_data;
-            }
-            // start when promise is available and send messages
-            findMessageData().then((message_data) => {
-                if (message_data.length == 0) {
-                    logger.app.log('info', `MongoDB - messages - No record found !!!`);
-                    var message_history = [];
-                    io.emit('SEND_MSG_ALL', message_history);
-                    logger.app.log('info', `socket.io - DELETE: message with ${message_data.length} items set to all clients`);
-                    return
-                } else {
-                    logger.app.log('info', `MongoDB - messages - ${Object.keys(message_data).length} records from messages read`);
-                    var message_history = [];
-                    for (i in message_data) {
-                        message_history.push(message_data[i]);
-                    }
-                    io.emit('SEND_MSG_ALL', message_history);
-                    logger.app.log('info', `socket.io - DELETE: message with ${message_data.length} items set to all clients`);
-                }
+    // move a message and send to all clients
+    socket.on('MOVE_MSG', (msg_id, msg, username) => {
+        archieveMessage(msg_id, username).then((archievedMessage) => {
+            logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${archievedMessage._id} saved in (messages)`);
+            createMessageActivity(archievedMessage._id, username, "ARCHIEVED").then((savedMessageActivity) =>{
+                logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                var MessageActivity = savedMessageActivity.toObject();
+                MessageActivity.msg = archievedMessage;
+                createMessage(msg, username).then((savedMessage) => {
+                    logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${savedMessage._id} saved in (messages)`);
+                    createMessageActivity(savedMessage._id, username, 'MOVED').then((savedMessageActivity) =>{
+                        logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                        var MessageActivity = savedMessageActivity.toObject();
+                        MessageActivity.msg = savedMessage;
+                        findMessageData().then((messages) => {
+                            var message_history = [];
+                            if (messages.length == 0) {
+                                logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${messages.length} records from (messages) read`);
+                            } else {
+                                logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${Object.keys(messages).length} records from (messages) read`);
+                            }
+                            for (i in messages) {
+                                message_history.push(messages[i]);
+                            }
+                            io.emit('SEND_MSG_ALL', message_history);
+                            logger.app.log('info', `socket.io - [MOVE]:         ${username} - ${messages.length} items from (messages) sent to all clients`);  
+                            findMessageActivityData().then((message_activities) => {
+                                io.emit('SEND_MSG_ACT_ALL', message_activities); 
+                                logger.app.log('info', `socket.io - [MOVE]:         ${username} - ${message_activities.length} items from (messages_activities) sent to all clients`);
+                            });
+                        });
+                    });               
+                });
             });
+           
         });
     });
 
@@ -283,47 +347,50 @@ io.on('connection', (socket) => {
 
 // scheduled executions
 //----------------------------------------------------------
-// update all messages older than 30 min and send remaining to clients every minute
+// archieve messages - checks every 1 minute and decided on alert type to delete either after 5min or 30min
 schedule.scheduleJob('*/1 * * * *', function () {    
     
-    // calculate timestamp 30 min ago
-    var date = new Date();
-    date.setMinutes(date.getMinutes() - 5);
+    // calculate timestamp 5 min ago for standard messages
+    var date_standard = new Date();
+    date_standard.setMinutes(date_standard.getMinutes() - 5);
+
+    // calculate timestamp 30 min ago for camp messages
+    var date_camp = new Date();
+    date_camp.setMinutes(date_camp.getMinutes() - 30);
 
     // archive messages async
     var result = {};
-    const archiveMessages = async function(){
-        try {
-            const archiveMessages = await messages.updateMany({ "dateChanged": { $lte: date }, "active": true },  {$set: { "active": false } });
-            result = archiveMessages;
-        } catch (err) {
-            logger.app.log('info', `MongoDB - messages - archive messages error: ${err}`);
-        }
+    async function archiveMessages(){
+        const archiveMessages = await messages.updateMany(
+        {$or:[
+            {$and:[{ "dateChanged": { $lte: date_standard }},{ "active": true}, {"message.gatecamp": false}, {"message.stationcamp": false}, {"message.bubble": false}]},
+            {$and:[{ "dateChanged": { $lte: date_camp }},{ "active": true}, {$or:[{"message.gatecamp": true}, {"message.stationcamp": true}, {"message.bubble": true}]}]}
+            ]}
+            ,
+            {$set: { "active": false }}           
+        );
+        result = archiveMessages;
     }
-    
-    // once archieved do
     archiveMessages().then(() => {
 
         if (result.nModified > 0) {
-            logger.app.log('info', `MongoDB - messages - ${result.nModified} messages archieved`);
-            // load async node data from DB
-            async function findMessageData() {
-                message_data = await messages.find({ "active": true });
-                return message_data;
-            }
-            // start when promise is available and send messages
-            findMessageData().then((message_data) => {
-                if (message_data.length == 0) {
-                    var message_history = [];
-                    io.emit('SEND_MSG_ALL', message_history);
-                    return
+            logger.app.log('info', `MongoDB   - [-JOB-]:        SERVER - ${result.nModified} messages archieved`);
+            findMessageData().then((messages) => {
+                var message_history = [];
+                if (messages.length == 0) {
+                    logger.app.log('info', `MongoDB   - [-JOB-]:        SERVER - ${messages.length} records from (messages) read`);
                 } else {
-                    var message_history = [];
-                    for (i in message_data) {
-                        message_history.push(message_data[i]);
-                    }
-                    io.emit('SEND_MSG_ALL', message_history);
+                    logger.app.log('info', `MongoDB   - [-JOB-]:        SERVER - ${Object.keys(messages).length} records from (messages) read`);
                 }
+                for (i in messages) {
+                    message_history.push(messages[i]);
+                }
+                io.emit('SEND_MSG_ALL', message_history);
+                logger.app.log('info', `socket.io - [-JOB-]:        SERVER - ${messages.length} items from (messages) sent to all clients`);  
+                findMessageActivityData().then((message_activities) => {
+                    io.emit('SEND_MSG_ACT_ALL', message_activities); 
+                    logger.app.log('info', `socket.io - [-JOB-]:        SERVER - ${message_activities.length} items from (messages_activities) sent to all clients`);
+                });
             });
         }
         

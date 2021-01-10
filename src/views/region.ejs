@@ -6,30 +6,63 @@
     <%- include('partials/pageMenu') -%>
 <%}%> 
 
+<%- include('partials/containers') -%>
+
 <div id="map_container"></div>
 
 <!-- container for map buttons -->
 <div id="map_buttons" class="input-group">
+    <!-- control the view -->
     <button type="button" class="btn btn-outline-warning btn-sm" id="zoom_reset" data-toggle="tooltip" data-placement="bottom" 
-        title="Reset Position and Zoom"><span class="fas fa-expand" aria-hidden="true"></span></button>&nbsp;
+        title="Reset Position and Zoom"><span class="fas fa-expand" aria-hidden="true"></span></button>
     <button type="button" class="btn btn-outline-warning btn-sm" id="center" data-toggle="tooltip" data-placement="bottom" 
-        title="Center the Map"><span class="fas fa-compress-arrows-alt" aria-hidden="true"></span></button>&nbsp;
-    <div class="dropdown">
+        title="Center the Map"><span class="fas fa-compress-arrows-alt" aria-hidden="true"></span></button>
+    <% if (flavor == 'mobile') { %>
+        <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>" role="button" data-toggle="tooltip" data-placement="bottom" title="Return to Desktop Version"><span class="fas fa-desktop" aria-hidden="true"></span></a>
+    <% } else {%> 
+        <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>&flavor=mobile" role="button" data-toggle="tooltip" data-placement="bottom" title="Open Clean Window for Mobiles"><span class="fas fa-tablet-alt" aria-hidden="true"></span></a>
+    <%}%> 
+    &nbsp;&nbsp;
+
+    <!-- search -->
+    <!-- <div class="dropdown">
         <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" data-placement="bottom" title="Select Region" aria-haspopup="true" aria-expanded="false">
             <span class="far fa-map" aria-hidden="true"></span>
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="dropdown_select">
-          <!-- <a class="dropdown-item" href="#">Action</a> -->
         </div>
-    </div>&nbsp;
-    <% if (flavor == 'mobile') { %>
-        <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>" role="button" data-toggle="tooltip" data-placement="bottom" title="Return to Desktop Version"><span class="fas fa-desktop" aria-hidden="true"></span></a>&nbsp;
-    <% } else {%> 
-        <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>&flavor=mobile" role="button" data-toggle="tooltip" data-placement="bottom" title="Open Clean Window for Mobiles"><span class="fas fa-tablet-alt" aria-hidden="true"></span></a>&nbsp;
-    <%}%>   
+    </div> -->
     <button type="button" class="btn btn-outline-warning btn-sm" id="search_loc" data-toggle="modal" data-target="#search_modal"  data-placement="bottom" 
-        title="Search for System"><span class="fas fa-search-location" aria-hidden="true"></span></button>&nbsp;
-    <a id="array_dump" class="btn btn-outline-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show message array"><span class="fas fa-layer-group" aria-hidden="true"></span></a>&nbsp;
+        title="Search for System"><span class="fas fa-search-location" aria-hidden="true"></span></button>
+      
+    <!-- user bar -->
+    &nbsp;&nbsp;
+    <button type="button" class="btn btn-outline-danger btn-sm" id="toggle_legend" data-toggle="tooltip" data-placement="bottom" 
+        title="Turn ON/OFF legend"><span class="fas fa-question" aria-hidden="true"></span></button>
+    <button type="button" class="btn btn-outline-warning btn-sm" id="toggle_labels" data-toggle="tooltip" data-placement="bottom" 
+        title="Turn ON/OFF labels"><span class="fas fa-tag" aria-hidden="true"></span></button>
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="" data-toggle="tooltip" data-placement="bottom" 
+        title="Save Positions and Labels for this region"><span class="far fa-save" aria-hidden="true"></span></button>
+
+    <!-- toggle button -->
+    <!-- &nbsp;&nbsp;
+    <button type="button" class="btn btn-outline-warning btn-sm" id="" data-toggle="tooltip" data-placement="bottom" 
+        title="Toggle Bar"><span class="far fa-arrow-alt-circle-left"></span></button> -->
+    
+    <!-- <a id="array_dump" class="btn btn-outline-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show message array"><span class="fas fa-layer-group" aria-hidden="true"></span></a>&nbsp; -->
+</div>
+
+<!-- container for map legend -->
+<div id="map_legend">
+    <img src="/media/legend.svg" width="300px", height="225px"> 
+</div>
+
+<!-- container for message box -->
+<div id="message_toggle">
+    <button type="button" class="btn btn-outline-warning btn-sm" id="toggle_message_box" data-toggle="tooltip" data-placement="top" 
+        title="Show last Alerts"><span class="far fa-envelope" aria-hidden="true"></span></button> 
+</div>
+<div id="message_box" class="container overflow-auto">
 </div>
 
 <!-- container for side bar -->
@@ -211,7 +244,7 @@
 <div id="drag_item" class="invisible dragable">
     <div class="popover" role="tooltip">
         <div class="arrow"></div>
-        <div class="popover-body">test</div>
+        <div class="popover-body"></div>
     </div>
 </div>
 
@@ -315,6 +348,7 @@ $(function() {
     const socket = io();
     const DateTime = luxon.DateTime;
     var alert_data = [];
+    var alert_act_data = [];
     var sys_reg_data = [];
     const uid = "<%= discordId %>";
     const avatar ="<%= avatar %>";
@@ -333,6 +367,8 @@ $(function() {
     var move_alert = [];
     var last_clicked_id = '';
     var last_clicked_sys = {};
+    var show_label = 1;
+    var show_message_box = 0;
 
     /* Initialization
     ---------------------------------------------------------------------------------------------------------------------------------------
@@ -340,11 +376,18 @@ $(function() {
     $('.nav-item').removeClass('active');                                       // reset aktive menu item
     $('#intel').addClass('active');                                             // set active menu item    
 
-    socket.emit('GET_MSG_ALL', '');                                             // inital request to send all messages
-    socket.emit('GET_SYS_REG_DATA', '');                                        // inital request to send all solar system and region data
+    socket.emit('GET_MSG_ALL', username);                                        // inital request to send all messages
+    socket.emit('GET_MSG_ACT_ALL', username); 
+    socket.emit('GET_SYS_REG_DATA', username);                                        // inital request to send all solar system and region data
 
     $('button').tooltip();                                                      // assign tooltip to buttons
     $('[role=button]').tooltip();                                               // assign tool tip to buttons
+    $('button').on("mouseleave",function(){                                     // close tooltips if mouse is not more on element
+            $(this).tooltip("hide");
+    });
+    $('[role=button]').on("mouseleave",function(){
+            $(this).tooltip("hide");
+    });
 
     // fill dropdown
     regions = [ {"id":10000001,"name":"Derelik"},
@@ -488,18 +531,20 @@ $(function() {
             .style("fill-opacity", 0.5);
 
         // add popover and tooltip to all solar systems in the current region
-        $('circle[data-node-type="solar_system"]')
-            .popover({ 
+        $('circle[data-node-type="solar_system"]').each(function (index){
+            content = createPopoverHeader($(this));  
+            $(this).attr("data-content", content);
+            $(this).popover({ 
                 trigger: 'manual', 
                 container: 'body', 
                 placement:'bottom', 
                 title: '', 
-                content:'<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm"  style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a></div>', 
+                content: content,
                 html: true, 
                 sanitize: false, 
                 template: $('#popover_template').html()
-            })
-            .tooltip({ 
+            });
+            $(this).tooltip({ 
                 trigger: 'manual', 
                 container: 'body', 
                 placement:'top', 
@@ -508,7 +553,8 @@ $(function() {
                 sanitize: false, 
                 template : $('#tooltip_template').html()
             });
-   
+        });
+        
         // Zoom handling - https://www.freecodecamp.org/news/get-ready-to-zoom-and-pan-like-a-pro-after-reading-this-in-depth-tutorial-5d963b0a153e/      
         var zoom = d3.zoom()
             .scaleExtent([max_out, max_in])                            
@@ -597,15 +643,17 @@ $(function() {
                 var source_msg_id = move_alert[0]._id;
                 var source_id = move_alert[0].message.id;
                 var target_id = $(this).attr("data-node-id");
+                var target_name = $(this).attr("data-node-name");
                 move_alert[0].message.discordId = uid;
                 move_alert[0].message.avatar = avatar;
                 move_alert[0].message.username = username;
                 move_alert[0].message.discriminator = discriminator;
                 move_alert[0].message.id = target_id;
+                move_alert[0].message.system = target_name;
+                move_alert[0].message.predecessors.push(source_id);
                 var msg = move_alert[0].message;
                 var msg_id = move_alert[0]._id;
-                socket.emit('DEL_MSG', source_msg_id);
-                socket.emit('SAVE_MSG', msg);
+                socket.emit('MOVE_MSG', source_msg_id, msg, username);
                 removeDrag();
                 refreshTooltips(target_id);
                 refreshTooltips(source_id);
@@ -643,7 +691,8 @@ $(function() {
 
         // dump array
         $("#array_dump").on('click', function(){
-            console.log(alert_data);
+            console.log("alert_data", alert_data);
+            console.log("alert_act_data", alert_act_data);
         });
 
         // Reset zoom
@@ -700,6 +749,33 @@ $(function() {
             $(".modal-footer").html('');
         })
 
+        // toggle labels
+        $('#toggle_labels').on('click', function(event) {
+            toggleLabels($(this));
+        });
+
+        // toggle legend
+        $('#toggle_legend').on('click', function(event) {
+            position = $('#map_legend').position();
+            if (position.left == -300){
+                showLegend();
+            }
+            if (position.left == 0){
+                hideLegend();
+            }
+        });
+
+        // toggle message box
+        $('#toggle_message_box').on('click', function(event) {
+            if (show_message_box == 1){
+                hideMessageBox();
+                show_message_box = 0;
+            } else {
+                showMessageBox();
+                show_message_box = 1;
+            }
+        });
+
         // Correct
         $('#correct_send').on('click', function(event) {
             event.preventDefault();
@@ -739,9 +815,28 @@ $(function() {
     ---------------------------------------------------------------------------------------------------------------------------------------
     */
     // reset all UI elements like removing selector, closing side-menu, hiding popovers
+
+    function createPopoverHeader(elem){
+        const node_id = elem.attr("data-node-id");
+        const node_name = elem.attr("data-node-name");
+        const node_sec = parseFloat(elem.attr("data-node-sec")).toFixed(2);
+        var content = '';
+        if (node_sec > 0.4){
+            content = '<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a><span>&nbsp;in </span><span class="high-sec">&nbsp;' + node_name + ' (' + node_sec + ')</span></div>'; 
+        }
+        if (node_sec <= 0.4){
+            content = '<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a><span>&nbsp;in </span><span class="low-sec">&nbsp;' + node_name + ' (' + node_sec + ')</span></div>'; 
+        }
+        if (node_sec < 0.0){
+            content = '<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a><span>&nbsp;in </span><span class="null-sec">&nbsp;' + node_name + ' (' + node_sec + ')</span></div>'; 
+        }
+        return content;
+    }
+
     function resetUI(){
         $('circle[data-node-type="solar_system"]').popover('hide');                     // close popover
-        $("#mySidenav").stop().animate({right: '-300px'});                                     // hide sidebar
+        hideSidebar();                                     // hide sidebar
+        hideLegend();                                     // hide map legend
         $("#report_systemname").removeClass();                                          // remove sidebar classes
         $('[data-type="selector"]').remove();                                           // remove ring selector
         resetForm($('#report'));                                                                    // reset form
@@ -749,7 +844,15 @@ $(function() {
 
     function fillSidebar(sys_id, sys_name, sys_sec){
         $("#report_systemname").html("System: " + sys_name + " (" + sys_sec + ")");     // Set Title
-        $("#report_systemname").addClass("null-sec");                                   // Color in Security
+        if (sys_sec <= 1.0 && sys_sec >= 0.5){
+            $("#report_systemname").addClass("high-sec"); 
+        }
+        if (sys_sec <= 0.4 && sys_sec >= 0.0){
+            $("#report_systemname").addClass("low-sec"); 
+        }
+        if (sys_sec < 0.0){
+            $("#report_systemname").addClass("null-sec"); 
+        }                                  // Color in Security
         $("#report_systemname").attr("data-node-id", sys_id);                           // save System ID
         $("#report_systemname").attr("data-node-name", sys_name);                       // save System Name
     }
@@ -760,6 +863,38 @@ $(function() {
 
     function hideSidebar(){
         $("#mySidenav").stop().animate({right: '-300px'});                                     // move sidebar out
+    }
+
+    function showLegend(){
+        if ($('nav').length){
+            $("#map_legend").css("top", "100px");
+        } else {
+            $("#map_legend").css("top", "45px");
+        }
+        $("#map_legend").stop().animate({left: '0px'});                                        // move sidebar in
+        $('#toggle_legend').removeClass("btn-outline-danger");
+        $('#toggle_legend').addClass("btn-outline-warning");
+    }
+
+    function hideLegend(){
+        if ($('nav').length){
+            $("#map_legend").css("top", "100px");
+        } else {
+            $("#map_legend").css("top", "45px");
+        }
+        $("#map_legend").stop().animate({left: '-300px'});                                     // move sidebar out
+        $('#toggle_legend').removeClass("btn-outline-warning");
+        $('#toggle_legend').addClass("btn-outline-danger");
+    }
+
+    function showMessageBox(){
+        $("#message_box").stop().animate({bottom: '0px'});                                        // move sidebar in
+        $("#message_toggle").stop().animate({bottom: '200px'}); 
+    }
+
+    function hideMessageBox(){
+        $("#message_box").stop().animate({bottom: '-200px'});                                        // move sidebar in
+        $("#message_toggle").stop().animate({bottom: '0px'}); 
     }
 
     function fillPopover(msg){
@@ -819,7 +954,7 @@ $(function() {
 
         $('#pop_buttons').html(function(){
             var content = '';
-            content = content + '<a data-id="delete_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-danger btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Delete Report"><span class="fas fa-trash-alt" aria-hidden="true"> Archive</span></a>';
+            content = content + '<a data-id="delete_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-danger btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Archive Report"><span class="fas fa-trash-alt" aria-hidden="true"> Archive</span></a>';
             content = content + '<a data-id="edit_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Edit Report"><span class="fas fa-edit" aria-hidden="true"> Edit</span></a>';
             content = content + '<a data-id="move_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Move Report"><span class="fas fa-expand-arrows-alt" aria-hidden="true"> Move</span></a>';
             return content;
@@ -870,14 +1005,14 @@ $(function() {
     }
 
     function updateData(){
-
+        //alert_data = [];
         const unique_id = new Set(alert_data.map(item => item.message.id));                                     // alerts with same id
         
         for (id of unique_id){
             const alerts_for_id = alert_data.filter(item => item.message.id === id)
             
-            content = '<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm"  style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a></div>';
-            
+            content = createPopoverHeader($('circle[data-node-id="' + id + '"]'));  
+
             for (j in alerts_for_id){                  
                 const sum_number = alert_data                                                               
                         .filter(item => item.message.id === id)
@@ -898,6 +1033,82 @@ $(function() {
                 $('circle[data-node-id="' + id + '"]').attr("data-content", content);
             }
         }        
+    }
+
+    function updateMessageBox(){
+        $('#message_box').html('');
+
+        for (i in alert_act_data){
+            var action = '';
+            switch (alert_act_data[i].action){
+                case "CREATED":
+                    action = '<span class="high-sec">[ADD]</span>';
+                    break;
+                case "EDITED":
+                    action = '<span class="low-sec">[EDIT]</span>';
+                    break;
+                case "ARCHIEVED":
+                    action = '<span class="null-sec">[ARCH]</span>';
+                    break;
+                case "MOVED":
+                    action = '<span class="low-sec">[MOVE]</span>';
+                    break;
+            }
+
+            const ago = convertDateTime(alert_act_data[i].date);
+            const system = '<span class="friendly">' + alert_act_data[i].msg.message.system + '</span>';
+            function ships(msg){
+                var content = '';
+                if (msg.message.shiptype.u > 0) {
+                    content += '<span class="text-danger">' + msg.message.shiptype.u + " unknown </span>";
+                }
+                if (msg.message.shiptype.f > 0) {
+                    content += '<span class="text-danger">' + msg.message.shiptype.f + " frigate </span>";
+                }
+                if (msg.message.shiptype.d > 0) {
+                    content += '<span class="text-danger">' + msg.message.shiptype.d + " destroyer </span>";
+                }
+                if (msg.message.shiptype.c > 0) {
+                    content += '<span class="text-danger">' + msg.message.shiptype.c + " cruiser </span>";
+                }
+                if (msg.message.shiptype.bc > 0) {
+                    content += '<span class="text-danger">' + msg.message.shiptype.bc + " BC </span>";
+                }
+                if (msg.message.shiptype.bs > 0) {
+                    content += '<span class="text-danger">' + msg.message.shiptype.bs + " BS </span>";
+                }
+                if (msg.message.shiptype.i > 0) {
+                    content += '<span class="text-danger">' + msg.message.shiptype.i + " industrial </span>";
+                }
+                return content;
+            };
+            const username = alert_act_data[i].username;
+
+            var inactive = '';
+            if(alert_act_data[i].msg.active == false){
+                inactive = '<span> [archieved]</span>';
+            }
+
+            const text  = '<div class="row" style="font-size:10px">'
+                        + '<div class="col pr-1 pl-1">'
+                        + ago
+                        + ' - '
+                        + system
+                        + ' : '
+                        + ships(alert_act_data[i].msg)
+                        + action
+                        + ' '
+                        + ' by '
+                        + username                       
+                        + inactive
+                        + '</div></div>';
+
+            $('#message_box').prepend(text);
+        }
+        
+   
+        //$('#message_box').stop().animate({scrollTop: $('#message_box').prop("scrollHeight")}, 500); // https://stackoverflow.com/questions/10776085/append-content-to-div-and-scroll-animate-to-bottom
+
     }
 
     function resetForm($form) {                                                                 
@@ -940,6 +1151,26 @@ $(function() {
         });
         return region_found.region_name;
     }
+
+    function toggleLabels(button){
+        if (show_label == 1) {
+            d3.selectAll('[data-node-type="solar_systems"] > g > rect').style("fill-opacity", 0.0);
+            d3.selectAll('[data-node-type="solar_systems"] > g > rect').style("stroke-opacity", 0.0);
+            d3.selectAll('[data-node-type="solar_systems"] > g > text').style("fill-opacity", 0.0);
+            button.removeClass("btn-outline-warning");
+            button.addClass("btn-outline-danger");
+            show_label = 0;
+        } else {
+            d3.selectAll('[data-node-type="solar_systems"] > g > rect').style("fill-opacity", 0.5);
+            d3.selectAll('[data-node-type="solar_systems"] > g > rect').style("stroke-opacity", 1.0);
+            d3.selectAll('[data-node-type="solar_systems"] > g > text').style("fill-opacity", 0.7);
+            button.removeClass("btn-outline-danger");
+            button.addClass("btn-outline-warning");
+            show_label = 1;
+        }
+
+
+    }
     /* helper functions
     ---------------------------------------------------------------------------------------------------------------------------------------
     */
@@ -956,7 +1187,7 @@ $(function() {
 
     $(document).on("click", '[data-id="delete_report"]', function(event) {
         event.preventDefault();
-        socket.emit('DEL_MSG', $(this).attr("data-msg-id"));
+        socket.emit('DEL_MSG', $(this).attr("data-msg-id"), username);
         var node_id = $(this).attr("data-node-id");
         refreshTooltips(node_id);
         var all_solar_systems = $('circle[data-node-type="solar_system"]');
@@ -1001,7 +1232,6 @@ $(function() {
     $("#report").submit(function(e) {
         e.preventDefault(); 
         msg_id              = $("#report_send").attr("data-msg-id");
-        console.log(msg_id);
         node_id             = $("#report_systemname").attr("data-node-id");
         node_name           = $("#report_systemname").attr("data-node-name");
         unknown_val         = $("#report_unknown_count").val();
@@ -1046,11 +1276,11 @@ $(function() {
         var send_type = $("#report_send").attr("data_type");
 
         if(send_type == "save") {
-            socket.emit('SAVE_MSG', message);
+            socket.emit('SAVE_MSG', message, username);
         }
 
         if(send_type == "update") {
-            socket.emit('EDIT_MSG', msg_id, message);
+            socket.emit('EDIT_MSG', msg_id, message, username);
         }
         
         resetForm($('#report'));                                                                    // reset form
@@ -1061,21 +1291,30 @@ $(function() {
         return false;
     });
 
-    socket.on('SEND_MSG', function(msg){                                                    //recieving messages    
-            alert_data.push(msg);                                                           // push all to array of alerts 
-            updateData();   
+    socket.on('SEND_MSG', function(msg_act, msg){                                                    //recieving messages    
+        alert_data.push(msg);
+        alert_act_data.push(msg_act);                                                     // push all to array of alerts 
+        updateMessageBox();
+        updateData();   
     });
 
     socket.on('SEND_MSG_ALL', function(msg){                                                //recieving ALL messages
-            alert_data = [];                                                                // rest array
-            alert_data = msg;
-            $('circle[data-node-type="solar_system"]').attr("data-content", '<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm"  style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a></div>');
-            $('circle[data-node-type="solar_system"]').tooltip('hide');                     // if there is no message hide remaining one
-            $('circle[data-node-type="solar_system"]').popover('hide');                     // hide open popvers as well
-            d3.selectAll('circle[data-node-type="solar_system"]').style("fill", "#000000"); // reset fill color
-            d3.selectAll('path').style("fill", "#191d21");                                  // reset fill color
-            d3.selectAll('path[data-node-rid="' + region + '"]').style("fill", "#1c2c3d");        // reset fill color
-            updateData();   
+        alert_data = msg;
+        $('circle[data-node-type="solar_system"]').each(function (index){
+            content = createPopoverHeader($(this));  
+            $(this).attr("data-content", content);
+        });
+        $('circle[data-node-type="solar_system"]').tooltip('hide');                     // if there is no message hide remaining one
+        $('circle[data-node-type="solar_system"]').popover('hide');                     // hide open popvers as well
+        d3.selectAll('circle[data-node-type="solar_system"]').style("fill", "#000000"); // reset fill color
+        d3.selectAll('path').style("fill", "#191d21");                                  // reset fill color
+        d3.selectAll('path[data-node-rid="' + region + '"]').style("fill", "#1c2c3d");        // reset fill color
+        updateData();   
+    });
+
+    socket.on('SEND_MSG_ACT_ALL', function(msg_act){  
+        alert_act_data = msg_act;
+        updateMessageBox();
     });
 
     socket.on('GET_SYS_REG_DATA', function(msg){                                            //recieving ALL system and region data
@@ -1090,7 +1329,8 @@ $(function() {
     ---------------------------------------------------------------------------------------------------------------------------------------
     */
     function updateDateTime(){
-        updateData(alert_data);
+        updateData();
+        updateMessageBox();
     }
     setInterval(updateDateTime, 1000 * 10); // every 10 sec
     /* regular updates on popovers and tooltips to update DateTime
