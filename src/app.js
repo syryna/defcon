@@ -7,6 +7,7 @@ const logger = require('./logger/logger');
 const path = require('path');
 const mongoose = require('mongoose');
 var schedule = require('node-schedule');
+const fetch = require('node-fetch');
 
 // My modules
 //const import_eveeye = require('./import_eveeye.js');
@@ -239,6 +240,9 @@ io.on('connection', (socket) => {
                 io.emit('SEND_MSG', MessageActivity, savedMessage);
                 logger.app.log('info', `socket.io - [CREATE]:       ${username} - ${savedMessage._id} in (messages) sent to all clients`);
                 logger.app.log('info', `socket.io - [CREATE]:       ${username} - ${MessageActivity._id} in (message_activities) sent to all clients`);
+                // send also to firebase
+                sendFireBaseMsg(process.env.MIKE, msg.system, msg.number);
+                sendFireBaseMsg(process.env.DAN, msg.system, msg.number);
             });               
         });
     });
@@ -398,3 +402,29 @@ schedule.scheduleJob('*/1 * * * *', function () {
 
     
 });
+
+
+//test message sending
+
+function sendFireBaseMsg(reciever, system, count) {
+
+    const body = {
+        "to": reciever,
+        "data": {
+            "system": system,
+            "count": count
+        },
+        "direct_boot_ok": true
+    };
+
+    fetch('https://fcm.googleapis.com/fcm/send', {
+        method: 'post',
+        body:    JSON.stringify(body),
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': process.env.MESSAGE_KEY
+        },
+    })
+    .then(res => res.json())
+    .then(json => logger.app.log('info', `firebase  - [-MSG-]:        RESULT - ${JSON.stringify(json)}`));  
+}
