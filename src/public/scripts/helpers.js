@@ -550,6 +550,5 @@ function stars(star_amount){
         content = content + '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
     }
-
     return content;
 }

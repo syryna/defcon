@@ -6,7 +6,7 @@ body {
 
 /* Entry Page */
 .center-div {
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -15,7 +15,7 @@ body {
 /* Map Container full screen */
 #map_container {
     /* https://stackoverflow.com/questions/18588835/allow-a-div-to-cover-the-whole-page-instead-of-the-area-within-the-container */
-    position: absolute;
+    position: fixed;
     padding: 0px;
     margin: 0px;
     top: 0px;
@@ -26,14 +26,14 @@ body {
 }
 
 #map_buttons {
-    position: absolute;
+    position: fixed;
     top: 10px;
     left: 0px;
     width: 270px;
 }
 
 #user_buttons {
-    position: absolute;
+    position: fixed;
     top: 10px;
     left: 0px;
     width: 320px;
@@ -118,7 +118,7 @@ body {
     z-index: 1900; 
 } */
 #message_box {
-    position: absolute;
+    position: fixed;
     bottom: -200px;
     left:  0px;
     height: 200px;

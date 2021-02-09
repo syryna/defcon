@@ -330,6 +330,11 @@ var xml = d3.xml('/media/<%= query %>.svg').mimeType('image/svg+xml').get(functi
             }
         }
     });
+
+    // modal initializations during show and hide
+    $('.modal').on('show.bs.modal', function (e) {
+
+    });
     $('.modal').on('hide.bs.modal', function (e) {
         $(".modal-footer").html('');
     });
