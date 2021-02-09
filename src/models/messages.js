@@ -61,6 +61,11 @@ const messagesSchema = new mongoose.Schema({
             type: Boolean,
             reuqired: true
         },
+        dateExpire: {
+            type: Date,
+            required: true,
+            default: Date.now
+        },
         discordId: {
             type: String,
             required: true
@@ -74,6 +79,10 @@ const messagesSchema = new mongoose.Schema({
         },
         discriminator: {
             type: String,
+            required: true
+        },
+        stars: {
+            type: Number,
             required: true
         },
     },

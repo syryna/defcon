@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
   <a class="navbar-brand" href="/dashboard">
     <% guilds.forEach(guild => { %>
     <% if (guild.name == whitelistAlliance) { %>
@@ -19,10 +19,10 @@
         <a class="nav-link" href="/dashboard/overview">Universe</a>
       </li>
       <li class="nav-item dropdown" id="intel">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle" href="#" id="intelDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Intel
         </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+        <div class="dropdown-menu" aria-labelledby="intelDropdown">
           <a class="dropdown-item" href="/dashboard/region?id=10000054">Aridia</a>
           <a class="dropdown-item" href="/dashboard/region?id=10000060">Delve</a>
           <a class="dropdown-item" href="/dashboard/region?id=10000058">Fountain</a>
@@ -31,6 +31,9 @@
           <div class="dropdown-divider"></div>
           <a class="dropdown-item" href="#">others possible as well</a>
         </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link disabled" href="#">Sov</a>
       </li>
       <li class="nav-item">
         <a class="nav-link disabled" href="#">Fleet Ops</a>
@@ -51,7 +54,17 @@
         <a class="nav-link disabled" href="#">Admin</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#" onclick="$('#about_modal').modal('show');">About</a>
+        <li class="nav-item dropdown" id="intel">
+          <a class="nav-link dropdown-toggle" href="#" id="helpDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            ?
+          </a>
+          <div class="dropdown-menu" aria-labelledby="helpDropdown">
+            <a class="dropdown-item" href="#">Help</a>
+            <a class="dropdown-item" href="#">Version History</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#" onclick="$('#about_modal').modal('show');">About DEFCON</a>
+          </div>
+        </li>
       </li>
     </ul>
     <form class="form-inline" action="/auth/logout">
@@ -63,7 +76,7 @@
           class="rounded-circle" alt="" loading="lazy">
       <% } %>
       &nbsp;
-      <span class="align-middle font-weight-bold"><%= username %>#<%= discriminator %></span>
+      <span class="align-middle font-weight-bold"><%= username %></span>
       &nbsp;
       <button type="submit" class="btn btn-danger btn-small">
         <span class="fab fa-discord" aria-hidden="true"></span> Logout

@@ -8,6 +8,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 var schedule = require('node-schedule');
 const fetch = require('node-fetch');
+var bodyParser = require('body-parser');
 
 // My modules
 //const import_eveeye = require('./import_eveeye.js');
@@ -38,6 +39,9 @@ const homeRoute = require('./routes/home');
 const authRoute = require('./routes/auth');
 const dashboardRoute = require('./routes/dashboard');
 const forbiddenRoute = require('./routes/forbidden');
+
+// Body Parser for JSON API
+app.use(bodyParser.json());
 
 // Session handling
 app.use(session({
@@ -71,16 +75,19 @@ app.use('/dashboard', dashboardRoute);
 app.use('/forbidden', forbiddenRoute);
 
 // Express Listener
-const server = https.createServer({
-    key: fs.readFileSync("./src/security/key.pem"),
-    cert: fs.readFileSync("./src/security/cert.pem"),
-    ca: fs.readFileSync("./src/security/ca.pem")
-},app).listen(PORT, () => {
-    logger.app.log('info', `Express - Express Server listening to requests on port ${PORT}`);
-});
-// const server = app.listen(PORT, () => {
-//     logger.app.log('info', `Express - Express Server listening to requests on port ${PORT}`);
-// });
+if(process.env.ENV == 'PROD'){
+    server = https.createServer({
+        key: fs.readFileSync("./security/key.pem"),
+        cert: fs.readFileSync("./security/cert.pem"),
+        ca: fs.readFileSync("./security/ca.pem")
+    },app).listen(PORT, () => {
+        logger.app.log('info', `Express - Express Server listening to requests on port ${PORT}`);
+    });
+} else {
+    server = app.listen(PORT, () => {
+        logger.app.log('info', `Express - Express Server listening to requests on port ${PORT}`);
+    });
+}
 
 // Setup socket.io
 var io = require('socket.io')(server);
@@ -89,12 +96,38 @@ const messages = require('./models/messages');
 const message_activities = require('./models/message_activities');
 const inv_solar_systems = require('./models/inv_solar_systems');
 const solar_correct = require('./models/inv_solar_correct');
+const user_map_settings = require('./models/user_map_settings');
+const user_settings = require('./models/user_settings');
 const { createConnection } = require('net');
 
 // common DB functions
+async function findSolarSystemData() {                      // read solar system and region data 
+    const all_solar_systems_data = await inv_solar_systems.aggregate([
+        { $lookup: { "from": "inv_regions", "localField": "region_id", "foreignField": "id", "as": "region" } },    // add region data to solar system (inv_solar_systems <- inv_regions)
+        { $unwind: "$region" },                                                                                     // unwind the nested array region : [{...,...,...}] -> {...,...,...}
+        { $project : { "id" : 1 , "name" : 1, "region_id" : 1, "region_name" : "$region.name" } }                   // define the output fields (sys_id, sys_name, region_id, region_name)
+    ]);
+    return all_solar_systems_data;
+}
+
 async function findMessageData() {                          // reads all active Messages and returns them all
     const message_data = await messages.find(
         { "active": true }
+    ).sort(
+         [['dateChanged', 'desc']] 
+    );
+    return message_data;
+}
+
+async function findMessageDataForSys(system_id, type) {                          // reads all active Messages for a system and type
+    const message_data = await messages.find(
+        { 
+            "active": true,
+            "message.id": system_id,
+            "message.type": type
+             }
+    ).sort(
+         [['dateChanged', 'desc']] 
     );
     return message_data;
 }
@@ -132,7 +165,6 @@ async function createMessageActivity(msg_id, username, action) {        // creat
     });
     const savedMessageActivity = await newMessageActivity.save();
     return savedMessageActivity;
-    
 }
 
 async function editMessage(msg_id, msg){                                // updates a message and returns returns it
@@ -151,11 +183,83 @@ async function archieveMessage(msg_id, username){
     return archievedMessage;
 }
 
+async function saveMapSettings(settings){
+    const mapSettings = await user_map_settings.findOneAndUpdate(        // save users map settings
+        { discordId: settings.discordId, "settings.region": settings.settings.region },        
+        { $set: settings },
+        { upsert: true, new: true }
+    );
+    return mapSettings;
+}
+
+async function findMapSettings(uid, region) {                          // reads map settings
+    const mapSettings = await user_map_settings.find(
+        { discordId: uid, "settings.region": region }
+    );
+    return mapSettings;
+}
+
+async function saveUserSettings(settings){
+    const userSettings = await user_settings.findOneAndUpdate(        // save users settings
+        { discordId: settings.discordId },        
+        { $set: settings },
+        { upsert: true, new: true }
+    );
+    return userSettings;
+}
+
+async function findUserSettings(uid) {                          // reads user settings
+    const userSettings = await user_settings.find(
+        { discordId: uid }
+    );
+    return userSettings;
+}
+
+async function increaseStars(uid){
+    const userSettings = await user_settings.findOneAndUpdate(        // save users settings
+        { discordId: uid },        
+        { $inc : {'stars' : 1}}
+    );
+    return userSettings;
+}
+
+
 // Socket handling
 io.on('connection', (socket) => {
 
-    // Get Connection details
-    logger.app.log('info', `socket.io - socket: ${socket.id} connected`);
+    // new socket connected
+    logger.app.log('info', `socket.io - socket: ${socket.handshake.query.username} connected`);
+    // send all data on initial connect
+    findSolarSystemData().then((solar_system_data) => {
+        socket.emit('GET_SYS_REG_DATA', solar_system_data);
+        logger.app.log('info', `socket.io - [-INIT-]:       ${socket.handshake.query.username} - solar and region data items sens to user`);
+    }); 
+    findMessageData().then((messages) => {
+        var message_history = [];
+        if (messages.length == 0) {
+            logger.app.log('info', `MongoDB   - [-INIT-]:       ${socket.handshake.query.username} - ${messages.length} records from (messages) read`);
+        } else {
+            logger.app.log('info', `MongoDB   - [-INIT-]:       ${socket.handshake.query.username} - ${Object.keys(messages).length} records from (messages) read`);
+        }
+        for (i in messages) {
+            message_history.push(messages[i]);
+        }
+        socket.emit('SEND_MSG_ALL', message_history);
+        logger.app.log('info', `socket.io - [-INIT-]:       ${socket.handshake.query.username} - ${messages.length} items from (messages) sent to user`);  
+    });
+    findMessageActivityData().then((message_activities) => {
+        socket.emit('SEND_MSG_ACT_ALL', message_activities); 
+        logger.app.log('info', `socket.io - [-INIT-]:       ${socket.handshake.query.username} - ${message_activities.length} items from (messages_activities) sent`);
+    }); 
+    findMapSettings(socket.handshake.query.uid, socket.handshake.query.region).then((mapSettings) => {
+        socket.emit('SEND_MAP_SETTINGS', mapSettings); 
+        logger.app.log('info', `socket.io - [-INIT-]:       ${socket.handshake.query.username} - ${mapSettings.length} items from (user_map_settings) sent`);
+    }); 
+    findUserSettings(socket.handshake.query.uid).then((userSettings) => {
+        socket.emit('SEND_USER_SETTINGS', userSettings); 
+        logger.app.log('info', `socket.io - [-INIT-]:       ${socket.handshake.query.username} - ${userSettings.length} items from (user_settings) sent`);
+    });
+
 
     socket.on('COORDS', (msg, type) => {
         if (type = "-100"){ // Admins only
@@ -188,22 +292,6 @@ io.on('connection', (socket) => {
         } 
     });
 
-    // Initial connect and sent all system and region data
-    socket.on('GET_SYS_REG_DATA', (username) => {
-        async function findSolarSystemData() {
-            all_solar_systems_data = await inv_solar_systems.aggregate([
-                { $lookup: { "from": "inv_regions", "localField": "region_id", "foreignField": "id", "as": "region" } },    // add region data to solar system (inv_solar_systems <- inv_regions)
-                { $unwind: "$region" },                                                                                     // unwind the nested array region : [{...,...,...}] -> {...,...,...}
-                { $project : { "id" : 1 , "name" : 1, "region_id" : 1, "region_name" : "$region.name" } }                   // define the output fields (sys_id, sys_name, region_id, region_name)
-            ]);
-            return all_solar_systems_data;
-        }
-        findSolarSystemData().then((solar_system_data) => {
-            socket.emit('GET_SYS_REG_DATA', solar_system_data);
-            logger.app.log('info', `socket.io - [-INIT-]:       ${username} - solar and region data items sens to user`);
-        }); 
-    });
-
     // send all active messages to client
     socket.on('GET_MSG_ALL', (username) => {
         findMessageData().then((messages) => {
@@ -231,24 +319,105 @@ io.on('connection', (socket) => {
 
     // store a message and send to all clients
     socket.on('SAVE_MSG', (msg, username) => {
-        createMessage(msg, username).then((savedMessage) => {
-            logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessage._id} saved in (messages)`);
-            createMessageActivity(savedMessage._id, username, 'CREATED').then((savedMessageActivity) =>{
-                logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
-                var MessageActivity = savedMessageActivity.toObject();
-                MessageActivity.msg = savedMessage;
-                io.emit('SEND_MSG', MessageActivity, savedMessage);
-                logger.app.log('info', `socket.io - [CREATE]:       ${username} - ${savedMessage._id} in (messages) sent to all clients`);
-                logger.app.log('info', `socket.io - [CREATE]:       ${username} - ${MessageActivity._id} in (message_activities) sent to all clients`);
-                // send also to firebase
-                sendFireBaseMsg(process.env.MIKE, msg.system, msg.number);
-                sendFireBaseMsg(process.env.DAN, msg.system, msg.number);
-            });               
+        increaseStars(socket.handshake.query.uid).then(() => {
+            logger.app.log('info', `socket.io - [CREATE]:       ${username} - stars in (user_settings) increased`);
+            findUserSettings(socket.handshake.query.uid).then((userSettings) => {
+                socket.emit('SEND_USER_SETTINGS', userSettings); 
+                logger.app.log('info', `socket.io - [CREATE]:       ${socket.handshake.query.username} - ${userSettings.length} items from (user_settings) sent`);
+            });
         });
+        if (msg.type == "enemy") {
+            findMessageDataForSys(msg.id, 'green').then((messages) => {
+                for (i in messages) {
+                    archieveMessage(messages[i]._id, username).then((archievedMessage) => {
+                        logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${archievedMessage._id} saved in (messages)`);
+                        createMessageActivity(archievedMessage._id, username, "ARCHIEVED").then((savedMessageActivity) =>{
+                            logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                            var MessageActivity = savedMessageActivity.toObject();
+                            MessageActivity.msg = archievedMessage;
+                        });
+                    });
+                }
+            });
+            createMessage(msg, username).then((savedMessage) => {
+                logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessage._id} saved in (messages)`);
+                createMessageActivity(savedMessage._id, username, 'CREATED').then((savedMessageActivity) =>{
+                    logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                    var MessageActivity = savedMessageActivity.toObject();
+                    MessageActivity.msg = savedMessage;
+                    // send also to firebase
+                    //sendFireBaseMsg(process.env.MIKE, msg.system, msg.number);
+                    //sendFireBaseMsg(process.env.DAN, msg.system, msg.number);
+                    findMessageData().then((messages) => {
+                        var message_history = [];
+                        if (messages.length == 0) {
+                            logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${messages.length} records from (messages) read`);
+                        } else {
+                            logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${Object.keys(messages).length} records from (messages) read`);
+                        }
+                        for (i in messages) {
+                            message_history.push(messages[i]);
+                        }
+                        io.emit('SEND_MSG_ALL', message_history);
+                        logger.app.log('info', `socket.io - [CREATE]:       ${username} - ${messages.length} items from (messages) sent to all clients`);  
+                        findMessageActivityData().then((message_activities) => {
+                            io.emit('SEND_MSG_ACT_ALL', message_activities); 
+                            logger.app.log('info', `socket.io - [CREATE]:       ${username} - ${message_activities.length} items from (messages_activities) sent to all clients`);
+                        });
+                    });
+                });
+            });
+        }
+        if (msg.type == "green") {
+            findMessageDataForSys(msg.id, 'enemy').then((messages) => {
+                for (i in messages) {
+                    archieveMessage(messages[i]._id, username).then((archievedMessage) => {
+                        logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${archievedMessage._id} saved in (messages)`);
+                        createMessageActivity(archievedMessage._id, username, "ARCHIEVED").then((savedMessageActivity) =>{
+                            logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                            var MessageActivity = savedMessageActivity.toObject();
+                            MessageActivity.msg = archievedMessage;
+                        });
+                    });
+                }
+            });
+            createMessage(msg, username).then((savedMessage) => {
+                logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessage._id} saved in (messages)`);
+                createMessageActivity(savedMessage._id, username, 'CREATED').then((savedMessageActivity) =>{
+                    logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                    var MessageActivity = savedMessageActivity.toObject();
+                    MessageActivity.msg = savedMessage;
+                    findMessageData().then((messages) => {
+                        var message_history = [];
+                        if (messages.length == 0) {
+                            logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${messages.length} records from (messages) read`);
+                        } else {
+                            logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${Object.keys(messages).length} records from (messages) read`);
+                        }
+                        for (i in messages) {
+                            message_history.push(messages[i]);
+                        }
+                        io.emit('SEND_MSG_ALL', message_history);
+                        logger.app.log('info', `socket.io - [CREATE]:       ${username} - ${messages.length} items from (messages) sent to all clients`);  
+                        findMessageActivityData().then((message_activities) => {
+                            io.emit('SEND_MSG_ACT_ALL', message_activities); 
+                            logger.app.log('info', `socket.io - [CREATE]:       ${username} - ${message_activities.length} items from (messages_activities) sent to all clients`);
+                        });
+                    });
+                });
+            });
+        }
     });
 
     // change a message and send to all clients
     socket.on('EDIT_MSG', (msg_id, msg, username) => {
+        increaseStars(socket.handshake.query.uid).then(() => {
+            logger.app.log('info', `socket.io - [EDIT]:         ${username} - stars in (user_settings) increased`);
+            findUserSettings(socket.handshake.query.uid).then((userSettings) => {
+                socket.emit('SEND_USER_SETTINGS', userSettings); 
+                logger.app.log('info', `socket.io - [EDIT]:         ${socket.handshake.query.username} - ${userSettings.length} items from (user_settings) sent`);
+            });
+        });
         editMessage(msg_id, msg, username).then((updatedMessage) => {
             logger.app.log('info', `MongoDB   - [EDIT]:         ${username} - ${updatedMessage._id} modified in (messages)`);
             createMessageActivity(updatedMessage._id, username, "EDITED").then((savedMessageActivity) =>{
@@ -278,6 +447,13 @@ io.on('connection', (socket) => {
 
     // archieve a message and send to all clients
     socket.on('DEL_MSG', (msg_id, username) => {
+        increaseStars(socket.handshake.query.uid).then(() => {
+            logger.app.log('info', `socket.io - [ARCHIEVE]:     ${username} - stars in (user_settings) increased`);
+            findUserSettings(socket.handshake.query.uid).then((userSettings) => {
+                socket.emit('SEND_USER_SETTINGS', userSettings); 
+                logger.app.log('info', `socket.io - [ARCHIEVE]:     ${socket.handshake.query.username} - ${userSettings.length} items from (user_settings) sent`);
+            });
+        });
         archieveMessage(msg_id, username).then((archievedMessage) => {
             logger.app.log('info', `MongoDB   - [ARCHIEVE]:     ${username} - ${archievedMessage._id} saved in (messages)`);
             createMessageActivity(archievedMessage._id, username, "ARCHIEVED").then((savedMessageActivity) =>{
@@ -307,12 +483,31 @@ io.on('connection', (socket) => {
 
     // move a message and send to all clients
     socket.on('MOVE_MSG', (msg_id, msg, username) => {
+        increaseStars(socket.handshake.query.uid).then(() => {
+            logger.app.log('info', `socket.io - [MOVE]:         ${username} - stars in (user_settings) increased`);
+            findUserSettings(socket.handshake.query.uid).then((userSettings) => {
+                socket.emit('SEND_USER_SETTINGS', userSettings); 
+                logger.app.log('info', `socket.io - [MOVE]:         ${socket.handshake.query.username} - ${userSettings.length} items from (user_settings) sent`);
+            });
+        });
         archieveMessage(msg_id, username).then((archievedMessage) => {
             logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${archievedMessage._id} saved in (messages)`);
             createMessageActivity(archievedMessage._id, username, "ARCHIEVED").then((savedMessageActivity) =>{
                 logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
                 var MessageActivity = savedMessageActivity.toObject();
                 MessageActivity.msg = archievedMessage;
+                findMessageDataForSys(msg.id, 'green').then((messages) => {
+                    for (i in messages) {
+                        archieveMessage(messages[i]._id, username).then((archievedMessage) => {
+                            logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${archievedMessage._id} saved in (messages)`);
+                            createMessageActivity(archievedMessage._id, username, "ARCHIEVED").then((savedMessageActivity) =>{
+                                logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                                var MessageActivity = savedMessageActivity.toObject();
+                                MessageActivity.msg = archievedMessage;
+                            });
+                        });
+                    }
+                });
                 createMessage(msg, username).then((savedMessage) => {
                     logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${savedMessage._id} saved in (messages)`);
                     createMessageActivity(savedMessage._id, username, 'MOVED').then((savedMessageActivity) =>{
@@ -343,9 +538,55 @@ io.on('connection', (socket) => {
         });
     });
 
+    socket.on('CONFIRM_MSG', (msg_id, msg, username) => {
+        increaseStars(socket.handshake.query.uid).then(() => {
+            logger.app.log('info', `socket.io - [CONFIRM]:      ${username} - stars in (user_settings) increased`);
+            findUserSettings(socket.handshake.query.uid).then((userSettings) => {
+                socket.emit('SEND_USER_SETTINGS', userSettings); 
+                logger.app.log('info', `socket.io - [CONFIRM]:      ${socket.handshake.query.username} - ${userSettings.length} items from (user_settings) sent`);
+            });
+        });
+        editMessage(msg_id, msg, username).then((updatedMessage) => {
+            logger.app.log('info', `MongoDB   - [CONFIRM]:      ${username} - ${updatedMessage._id} modified in (messages)`);
+            createMessageActivity(updatedMessage._id, username, "CONFIRMED").then((savedMessageActivity) =>{
+                logger.app.log('info', `MongoDB   - [CONFIRM]:      ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
+                var MessageActivity = savedMessageActivity.toObject();
+                MessageActivity.msg = updatedMessage;
+                findMessageData().then((messages) => {
+                    var message_history = [];
+                    if (messages.length == 0) {
+                        logger.app.log('info', `MongoDB   - [CONFIRM]:      ${username} - ${messages.length} records from (messages) read`);
+                    } else {
+                        logger.app.log('info', `MongoDB   - [CONFIRM]:      ${username} - ${Object.keys(messages).length} records from (messages) read`);
+                    }
+                    for (i in messages) {
+                        message_history.push(messages[i]);
+                    }
+                    io.emit('SEND_MSG_ALL', message_history);
+                    logger.app.log('info', `socket.io - [CONFIRM]:      ${username} - ${messages.length} items from (messages) sent to all clients`);  
+                    findMessageActivityData().then((message_activities) => {
+                        io.emit('SEND_MSG_ACT_ALL', message_activities); 
+                        logger.app.log('info', `socket.io - [CONFIRM]:      ${username} - ${message_activities.length} items from (messages_activities) sent to all clients`);
+                    });
+                });
+            }); 
+        });
+    });
+
+    socket.on('SAVE_MAP_SETTINGS', (settings, username) => {
+        saveMapSettings(settings).then((mapSettings) => {
+            logger.app.log('info', `socket.io - [SETTINGS]:     ${username} - ${mapSettings} save in user_map_settings`);
+        });
+    });
+
+    socket.on('SAVE_USER_SETTINGS', (settings, username) => {
+        saveUserSettings(settings).then((userSettings) => {
+            logger.app.log('info', `socket.io - [SETTINGS]:     ${username} - ${userSettings} save in user_settings`);
+        });
+    });
 
     socket.on('disconnect', () => {
-        logger.app.log('info', `socket.io - INIT: user disconnected`);
+        logger.app.log('info', `socket.io - socket: ${socket.handshake.query.username} disconnected`);
     });
 });
 
@@ -354,29 +595,30 @@ io.on('connection', (socket) => {
 // archieve messages - checks every 1 minute and decided on alert type to delete either after 5min or 30min
 schedule.scheduleJob('*/1 * * * *', function () {    
     
-    // calculate timestamp 5 min ago for standard messages
+    // calculate current timestamp
     var date_standard = new Date();
-    date_standard.setMinutes(date_standard.getMinutes() - 5);
+    // date_standard.setMinutes(date_standard.getMinutes() - 5);
 
-    // calculate timestamp 30 min ago for camp messages
-    var date_camp = new Date();
-    date_camp.setMinutes(date_camp.getMinutes() - 30);
+    // // calculate timestamp 30 min ago for camp messages
+    // var date_camp = new Date();
+    // date_camp.setMinutes(date_camp.getMinutes() - 30);
 
     // archive messages async
     var result = {};
     async function archiveMessages(){
         const archiveMessages = await messages.updateMany(
-        {$or:[
-            {$and:[{ "dateChanged": { $lte: date_standard }},{ "active": true}, {"message.gatecamp": false}, {"message.stationcamp": false}, {"message.bubble": false}]},
-            {$and:[{ "dateChanged": { $lte: date_camp }},{ "active": true}, {$or:[{"message.gatecamp": true}, {"message.stationcamp": true}, {"message.bubble": true}]}]}
-            ]}
-            ,
-            {$set: { "active": false }}           
+        // {$or:[
+        //     {$and:[{ "dateChanged": { $lte: date_standard }},{ "active": true}, {"message.gatecamp": false}, {"message.stationcamp": false}, {"message.bubble": false}]},
+        //     {$and:[{ "dateChanged": { $lte: date_camp }},{ "active": true}, {$or:[{"message.gatecamp": true}, {"message.stationcamp": true}, {"message.bubble": true}]}]}
+        //     ]}
+        //     ,
+        //     {$set: { "active": false }}   
+        { "message.dateExpire": { $lte: date_standard }},
+        {$set: { "active": false }}         
         );
         result = archiveMessages;
     }
     archiveMessages().then(() => {
-
         if (result.nModified > 0) {
             logger.app.log('info', `MongoDB   - [-JOB-]:        SERVER - ${result.nModified} messages archieved`);
             findMessageData().then((messages) => {
@@ -390,22 +632,22 @@ schedule.scheduleJob('*/1 * * * *', function () {
                     message_history.push(messages[i]);
                 }
                 io.emit('SEND_MSG_ALL', message_history);
-                logger.app.log('info', `socket.io - [-JOB-]:        SERVER - ${messages.length} items from (messages) sent to all clients`);  
+                logger.app.log('info', `socket.io - [-JOB-]:        SERVER - ${messages.length} items from (messages) sent to all clients`); 
                 findMessageActivityData().then((message_activities) => {
                     io.emit('SEND_MSG_ACT_ALL', message_activities); 
                     logger.app.log('info', `socket.io - [-JOB-]:        SERVER - ${message_activities.length} items from (messages_activities) sent to all clients`);
-                });
+                }); 
             });
         }
-        
     });
-
-    
+    findMessageActivityData().then((message_activities) => {
+        io.emit('SEND_MSG_ACT_ALL', message_activities); 
+        logger.app.log('info', `socket.io - [-JOB-]:        SERVER - ${message_activities.length} items from (messages_activities) sent to all clients`);
+    });
 });
 
 
-//test message sending
-
+// send messages to FireBase for Andriod and IOs devices
 function sendFireBaseMsg(reciever, system, count) {
 
     const body = {

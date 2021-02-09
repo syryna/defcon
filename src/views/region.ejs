@@ -8,776 +8,286 @@
 
 <%- include('partials/containers') -%>
 
+<script src="/scripts/helpers.js"></script>
+
 <div id="map_container"></div>
-
-<!-- container for map buttons -->
-<div id="map_buttons" class="input-group">
-    <!-- control the view -->
-    <button type="button" class="btn btn-outline-warning btn-sm" id="zoom_reset" data-toggle="tooltip" data-placement="bottom" 
-        title="Reset Position and Zoom"><span class="fas fa-expand" aria-hidden="true"></span></button>
-    <button type="button" class="btn btn-outline-warning btn-sm" id="center" data-toggle="tooltip" data-placement="bottom" 
-        title="Center the Map"><span class="fas fa-compress-arrows-alt" aria-hidden="true"></span></button>
-    <% if (flavor == 'mobile') { %>
-        <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>" role="button" data-toggle="tooltip" data-placement="bottom" title="Return to Desktop Version"><span class="fas fa-desktop" aria-hidden="true"></span></a>
-    <% } else {%> 
-        <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>&flavor=mobile" role="button" data-toggle="tooltip" data-placement="bottom" title="Open Clean Window for Mobiles"><span class="fas fa-tablet-alt" aria-hidden="true"></span></a>
-    <%}%> 
-    &nbsp;&nbsp;
-
-    <!-- search -->
-    <!-- <div class="dropdown">
-        <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" data-placement="bottom" title="Select Region" aria-haspopup="true" aria-expanded="false">
-            <span class="far fa-map" aria-hidden="true"></span>
-        </button>
-        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="dropdown_select">
-        </div>
-    </div> -->
-    <button type="button" class="btn btn-outline-warning btn-sm" id="search_loc" data-toggle="modal" data-target="#search_modal"  data-placement="bottom" 
-        title="Search for System"><span class="fas fa-search-location" aria-hidden="true"></span></button>
-      
-    <!-- user bar -->
-    &nbsp;&nbsp;
-    <button type="button" class="btn btn-outline-danger btn-sm" id="toggle_legend" data-toggle="tooltip" data-placement="bottom" 
-        title="Turn ON/OFF legend"><span class="fas fa-question" aria-hidden="true"></span></button>
-    <button type="button" class="btn btn-outline-warning btn-sm" id="toggle_labels" data-toggle="tooltip" data-placement="bottom" 
-        title="Turn ON/OFF labels"><span class="fas fa-tag" aria-hidden="true"></span></button>
-    <button type="button" class="btn btn-outline-secondary btn-sm" id="" data-toggle="tooltip" data-placement="bottom" 
-        title="Save Positions and Labels for this region"><span class="far fa-save" aria-hidden="true"></span></button>
-
-    <!-- toggle button -->
-    <!-- &nbsp;&nbsp;
-    <button type="button" class="btn btn-outline-warning btn-sm" id="" data-toggle="tooltip" data-placement="bottom" 
-        title="Toggle Bar"><span class="far fa-arrow-alt-circle-left"></span></button> -->
-    
-    <!-- <a id="array_dump" class="btn btn-outline-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show message array"><span class="fas fa-layer-group" aria-hidden="true"></span></a>&nbsp; -->
-</div>
-
-<!-- container for map legend -->
-<div id="map_legend">
-    <img src="/media/legend.svg" width="300px", height="225px"> 
-</div>
-
-<!-- container for message box -->
-<div id="message_toggle">
-    <button type="button" class="btn btn-outline-warning btn-sm" id="toggle_message_box" data-toggle="tooltip" data-placement="top" 
-        title="Show last Alerts"><span class="far fa-envelope" aria-hidden="true"></span></button> 
-</div>
-<div id="message_box" class="container overflow-auto">
-</div>
-
-<!-- container for side bar -->
-<div id="mySidenav" class="sidenav">
-    <form id="report" action="">
-        <h5>Report Enemy</h5>
-        <hr>
-        <h6 id="report_systemname"></h6>
-        <div class="input-group input-group-sm">
-            <div class="input-group-prepend input-group-sm">
-                <span class="input-group-text input-group-sm"><span style="width: 16px; height: 16px;" class="fas fa-question" aria-hidden="true"></span></span>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_unknown_count', 'sub', 10);">-10</a>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_unknown_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
-            </div>
-            <input id="report_unknown_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
-            <div class="input-group-append input-group-sm">
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_unknown_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_unknown_count', 'add', 10);">+10</a>
-            </div>
-        </div>
-        <div class="input-group input-group-sm">
-            <div class="input-group-prepend input-group-sm">
-                <span class="input-group-text input-group-sm"><img src="/media/frigate.png"></span></span>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_frigate_count', 'sub', 10);">-10</a>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_frigate_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
-            </div>
-            <input id="report_frigate_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
-            <div class="input-group-append input-group-sm">
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_frigate_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_frigate_count', 'add', 10);">+10</a>
-            </div>
-        </div>
-        <div class="input-group input-group-sm">
-            <div class="input-group-prepend input-group-sm">
-                <span class="input-group-text input-group-sm"><img src="/media/destroyer.png"></span></span>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_destroyer_count', 'sub', 10);">-10</a>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_destroyer_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
-            </div>
-            <input id="report_destroyer_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
-            <div class="input-group-append input-group-sm">
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_destroyer_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_destroyer_count', 'add', 10);">+10</a>
-            </div>
-        </div>
-        <div class="input-group input-group-sm">
-            <div class="input-group-prepend input-group-sm">
-                <span class="input-group-text input-group-sm"><img src="/media/cruiser.png"></span></span>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_cruiser_count', 'sub', 10);">-10</a>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_cruiser_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
-            </div>
-            <input id="report_cruiser_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
-            <div class="input-group-append input-group-sm">
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_cruiser_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_cruiser_count', 'add', 10);">+10</a>
-            </div>
-        </div>
-        <div class="input-group input-group-sm">
-            <div class="input-group-prepend input-group-sm">
-                <span class="input-group-text input-group-sm"><img src="/media/battlecruiser.png"></span></span>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bc_count', 'sub', 10);">-10</a>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bc_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
-            </div>
-            <input id="report_bc_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
-            <div class="input-group-append input-group-sm">
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bc_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bc_count', 'add', 10);">+10</a>
-            </div>
-        </div>
-        <div class="input-group input-group-sm">
-            <div class="input-group-prepend input-group-sm">
-                <span class="input-group-text input-group-sm"><img src="/media/battleship.png"></span></span>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bs_count', 'sub', 10);">-10</a>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bs_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
-            </div>
-            <input id="report_bs_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
-            <div class="input-group-append input-group-sm">
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bs_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bs_count', 'add', 10);">+10</a>
-            </div>
-        </div>
-        <div class="input-group input-group-sm">
-            <div class="input-group-prepend input-group-sm">
-                <span class="input-group-text input-group-sm"><img src="/media/miningbarge.png"></span></span>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_barge_count', 'sub', 10);">-10</a>
-                <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_barge_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
-            </div>
-            <input id="report_barge_count" type="text" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0" disabled>
-            <div class="input-group-append input-group-sm">
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_barge_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
-                <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_barge_count', 'add', 10);">+10</a>
-            </div>
-        </div>
-        <div class="input-group input-group-sm">
-            <div class="input-group-prepend">
-            <span class="input-group-text" style="width: 34px">@</span>
-            </div>
-            <input id="report_location" type="text" class="form-control" placeholder="optional: e.g gate; planet 5" aria-label="location" aria-describedby="">
-        </div>
-        <div class="input-group input-group-sm">
-            <div class="input-group-prepend">
-            <span class="input-group-text" style="width: 34px">txt</span>
-            </div>
-            <input id="report_comment" type="text" class="form-control" placeholder="optional: e.g names or ships" aria-label="comment" aria-describedby="">
-        </div>
-        <br>
-        <div class="input-group input-group-sm">
-            <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="report_gatecamp">
-                <label class="custom-control-label" for="report_gatecamp"><img src="/media/stargate.png"> Gate Camp</label>
-            </div>
-            <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="report_stationcamp">
-                <label class="custom-control-label" for="report_stationcamp"><img src="/media/station.png"> Station Camp</label>
-            </div>
-            <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="report_bubble">
-                <label class="custom-control-label" for="report_bubble"><img src="/media/bubble.png"> Bubble involved</label>
-            </div>
-        </div>
-        <br>
-        <div class="input-group input-group-sm justify-content-center">
-            <button class="btn btn-outline-warning" type="submit" id="report_send" data-type="save">Save</button>
-        </div>
-    </form>
-</div>
-
-<!-- container for the popover -->
-<div id="popover_template" class="invisible">
-    <div class="popover" role="tooltip">
-        <div class="arrow"></div>
-        <div class="popover-body"></div>
-    </div>
-</div>
-
-<!-- container for the tooltip -->
-<div id="tooltip_template" class="invisible">
-    <div class="tooltip" role="tooltip">
-        <div class="arrow"></div>
-        <div class="tooltip-inner">
-            <div class="d-flex justify-content-center">
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- container for the popover content -->
-<div id="popover_content" class="invisible">
-    <div class="container p-0">
-        <div id="drag_part" class="container p-0">
-            <div class="row m-0">
-                <div id="pop_pic" class="col-6 p-0 mt-1 border-top border-dark text-truncate" style="font-size: 12px">
-                </div>
-                <div id="pop_time" class="col-6 p-0 mt-1 border-top border-dark d-flex justify-content-end" style="font-size: 12px">
-                </div>
-            </div>
-            <div class="row m-0">
-                <div id="pop_threat" class="col-auto p-0">
-                </div>
-                <div id="pop_ships" class="col-auto p-0 d-flex flex-wrap">
-                </div>
-            </div>
-            <div class="row m-0">
-                <div id="pop_location" class="col-12 p-0 text-truncate" style="font-size: 12px">
-                </div>
-            </div>
-            <div class="row m-0">
-                <div id="pop_comment" class="col-12 p-0 text-truncate" style="font-size: 12px">
-                </div>
-            </div>
-            <div class="row m-0">
-                <div id="pop_buttons" class="col-12 p-0 border-bottom border-dark d-flex justify-content-around">
-                </div>
-            </div> 
-        </div>     
-    </div>
-</div>
-
-<!-- container for the drag_item -->
-<div id="drag_item" class="invisible dragable">
-    <div class="popover" role="tooltip">
-        <div class="arrow"></div>
-        <div class="popover-body"></div>
-    </div>
-</div>
-
-<!-- Search Modal -->
-<div class="modal fade" id="search_modal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h6 class="modal-title" id="searchModalLabel">Do not know the system name? Search for it to figure out where it is located!</h6>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        <div class="modal-body">
-            <form>
-                <div class="form-group">
-                    <label for="autocomplete">System name</label>
-                    <input type="text" class="form-control" id="autocomplete" aria-describedby="searchHelpTxt" autocomplete="off">
-                    <small id="searchHelpTxt" class="form-text text-muted">Enter system name it will autocomplete</small>
-                </div>
-                <button type="submit" class="btn btn-outline-warning" id="search_send">Search</button>
-            </form>
-        </div>
-        <div class="modal-footer">
-          <!-- <button type="button" class="btn btn-outline-warning">Search</button> -->
-        </div>
-      </div>
-    </div>
-</div>
-
-<!-- Correct Modal -->
-<div class="modal fade" id="correct_modal" tabindex="-1" aria-labelledby="correctModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h6 class="modal-title" id="correctModalLabel">Correct</h6>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        <div class="modal-body">
-            <form>
-                <div class="form-group">
-                    <pre id="message" class="text-danger"></pre>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="right_check">
-                        <label class="form-check-label" for="right_check">
-                            Label right position?
-                        </label>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-outline-warning" id="correct_send">Save</button>
-            </form>
-        </div>
-        <div class="modal-footer">
-          <!-- <button type="button" class="btn btn-outline-warning">Search</button> -->
-        </div>
-      </div>
-    </div>
-</div>
 
 <script>
 
-/* Calculations for the Report Enemy Form. 
-Values calculated for the buttons to do +1 +10 or -1 -10 and store in the coresponding fields */
-function changeValue(id, operator, value){
-    if (operator == "sub"){
-        current_value = parseInt(document.getElementById(id).value);
-        if (isNaN(current_value)){
-            new_value = 0 - parseInt(value);
-            if (new_value > 0){
-                document.getElementById(id).value = parseInt(new_value);
-            } else {
-                document.getElementById(id).value = 0;
-            }
-        } else {
-            new_value = current_value - parseInt(value);
-            if (new_value > 0){
-                document.getElementById(id).value = parseInt(new_value);
-            } else {
-                document.getElementById(id).value = 0;
-            }
-        }
-    }
-    if (operator == "add"){
-        current_value = parseInt(document.getElementById(id).value);
-        if (isNaN(current_value)){
-            new_value = 0 + parseInt(value);
-            document.getElementById(id).value = parseInt(new_value);
-        } else {
-            new_value = current_value + parseInt(value);
-            document.getElementById(id).value = parseInt(new_value);
-        }
-    }    
+/* Global Variables 
+---------------------------------------------------------------------------------------------------------------------------------------
+*/
+const socket    = io({
+  query: {
+    uid: "<%= discordId %>",
+    username: "<%= username %>",
+    region: "<%= query %>"
+  }
+});
+const w         = $('#map_container').width();
+const h         = $('#map_container').height();
+const region    = "<%= query %>";
+var region_name = '';
+
+const user  = {
+    "uid":              "<%= discordId %>",
+    "username":         "<%= username %>",
+    "discriminator":    "<%= discriminator %>",
+    "avatar":           "<%= avatar %>",
+    "type":             "<%= type %>"
 }
 
-/* Document ready functions which are executed once the page is loaded */
-$(function() {
+var alert_data      = [];
+var alert_act_data  = [];
+var sys_reg_data    = [];
+var move_alert      = [];
 
-    /* glabal variables */
-    const socket = io();
-    const DateTime = luxon.DateTime;
-    var alert_data = [];
-    var alert_act_data = [];
-    var sys_reg_data = [];
-    const uid = "<%= discordId %>";
-    const avatar ="<%= avatar %>";
-    const username = "<%= username %>";
-    const discriminator = "<%= discriminator %>";
-    const region = "<%= query %>";
-    const type = "<%= type %>";
-    var region_name = '';
-    var zoomTrans = {x:0, y:0, scale:1};
-    var w = $('#map_container').width();
-    var h = $('#map_container').height();
-    var x = 0;
-    var y = 0;
-    const max_out = 0.2;
-    const max_in = 2;
-    var move_alert = [];
-    var last_clicked_id = '';
-    var last_clicked_sys = {};
-    var show_label = 1;
-    var show_message_box = 0;
+var user_map_settings = {
+    "region": region,
+    "zoomTrans": {
+        "x": 0,
+        "y": 0,
+        "scale": 1
+    },
+    "show_label": 1,
+    "show_message_box": 0,
+    "show_legend": 0,
+    "show_tooltips": 1,
+    "show_trails": 1
+}
 
-    /* Initialization
-    ---------------------------------------------------------------------------------------------------------------------------------------
-    */
-    $('.nav-item').removeClass('active');                                       // reset aktive menu item
-    $('#intel').addClass('active');                                             // set active menu item    
+var user_settings = {
+    "discordId": "<%= discordId %>",
+    "username_original": "<%= username %>",
+    "username": null,
+    "stars": 0,
+    "revert_y_axis": false,
+    "home_base": "319-3D",
+    "jump_range": 5,
+    "audio_alerts": false
+}
 
-    socket.emit('GET_MSG_ALL', username);                                        // inital request to send all messages
-    socket.emit('GET_MSG_ACT_ALL', username); 
-    socket.emit('GET_SYS_REG_DATA', username);                                        // inital request to send all solar system and region data
+// system repositioning
+var x = 0;
+var y = 0;
+var last_clicked_id = '';
+var last_clicked_sys = {};
+/* --------------------------------------------------------------------------------------------------------------------------------- */
 
-    $('button').tooltip();                                                      // assign tooltip to buttons
-    $('[role=button]').tooltip();                                               // assign tool tip to buttons
-    $('button').on("mouseleave",function(){                                     // close tooltips if mouse is not more on element
-            $(this).tooltip("hide");
+
+/* Load SVG and handle all SVG related events
+---------------------------------------------------------------------------------------------------------------------------------------
+*/
+var xml = d3.xml('/media/<%= query %>.svg').mimeType('image/svg+xml').get(function(error, data) {               
+    if (error) throw error;
+
+    // Append SVG content to container
+    d3.select('#map_container').node().append(data.documentElement);
+
+    // different SVG selectors
+    const svg           = d3.select('svg');
+    const background    = d3.select('[data-node-type=background]');
+    const path          = d3.selectAll('path');
+    const circle        = d3.selectAll('circle[data-node-type="solar_system"]');
+
+    // constants
+    const max_out       = 0.2;
+    const max_in        = 2.0;
+    // const svg_w         = svg.attr('data-width');
+    // const svg_h         = svg.attr('data-height');
+    const svg_w         = background.node().getBBox().width;
+    const svg_h         = background.node().getBBox().height;
+    const trans_x       = (w - (svg_w)*max_out)/2; 
+    const trans_y       = (h - (svg_h)*max_out)/2;
+
+    // build text boxes for the solar system names
+    var text = [];
+    d3.selectAll('[data-node-type="solar_systems"] > g > text').attr('x', function(d,i){
+        text.push({text:d, pos:i, el: d3.select(this)});
+        return d3.select(this).attr('x');
     });
-    $('[role=button]').on("mouseleave",function(){
-            $(this).tooltip("hide");
-    });
+    d3.selectAll('[data-node-type="solar_systems"] > g').data(text).insert('rect')
+        .attr('x', function(d){ 
+            return d.el.node().getBBox().x - 5}
+            )
+        .attr('y', function(d){
+            return d.el.node().getBBox().y }
+            )
+        .attr('width', function(d){
+            return d.el.node().getBBox().width + 10}
+            )
+        .attr('height', function(d){
+            return d.el.node().getBBox().height }
+            )
+        .style('stroke', 'gray')
+        .style('fill', '#000000')
+        .style("fill-opacity", 0.5);
 
-    // fill dropdown
-    regions = [ {"id":10000001,"name":"Derelik"},
-                {"id":10000002,"name":"The Forge"},
-                {"id":10000003,"name":"Vale of the Silent"},
-                {"id":10000004,"name":"UUA-F4"},
-                {"id":10000005,"name":"Detorid"},
-                {"id":10000006,"name":"Wicked Creek"},
-                {"id":10000007,"name":"Cache"},
-                {"id":10000008,"name":"Scalding Pass"},
-                {"id":10000009,"name":"Insmother"},
-                {"id":10000010,"name":"Tribute"},
-                {"id":10000011,"name":"Great Wildlands"},
-                {"id":10000012,"name":"Curse"},
-                {"id":10000013,"name":"Malpais"},
-                {"id":10000014,"name":"Catch"},
-                {"id":10000015,"name":"Venal"},
-                {"id":10000016,"name":"Lonetrek"},
-                {"id":10000017,"name":"J7HZ-F"},
-                {"id":10000018,"name":"The Spire"},
-                {"id":10000019,"name":"A821-A"},
-                {"id":10000020,"name":"Tash-Murkon"},
-                {"id":10000021,"name":"Outer Passage"},
-                {"id":10000022,"name":"Stain"},
-                {"id":10000023,"name":"Pure Blind"},
-                {"id":10000025,"name":"Immensea"},
-                {"id":10000027,"name":"Etherium Reach"},
-                {"id":10000028,"name":"Molden Heath"},
-                {"id":10000029,"name":"Geminate"},
-                {"id":10000030,"name":"Heimatar"},
-                {"id":10000031,"name":"Impass"},
-                {"id":10000032,"name":"Sinq Laison"},
-                {"id":10000033,"name":"The Citadel"},
-                {"id":10000034,"name":"The Kalevala Expanse"},
-                {"id":10000035,"name":"Deklein"},
-                {"id":10000036,"name":"Devoid"},
-                {"id":10000037,"name":"Everyshore"},
-                {"id":10000038,"name":"The Bleak Lands"},
-                {"id":10000039,"name":"Esoteria"},
-                {"id":10000040,"name":"Oasa"},
-                {"id":10000041,"name":"Syndicate"},
-                {"id":10000042,"name":"Metropolis"},
-                {"id":10000043,"name":"Domain"},
-                {"id":10000044,"name":"Solitude"},
-                {"id":10000045,"name":"Tenal"},
-                {"id":10000046,"name":"Fade"},
-                {"id":10000047,"name":"Providence"},
-                {"id":10000048,"name":"Placid"},
-                {"id":10000049,"name":"Khanid"},
-                {"id":10000050,"name":"Querious"},
-                {"id":10000051,"name":"Cloud Ring"},
-                {"id":10000052,"name":"Kador"},
-                {"id":10000053,"name":"Cobalt Edge"},
-                {"id":10000054,"name":"Aridia"},
-                {"id":10000055,"name":"Branch"},
-                {"id":10000056,"name":"Feythabolis"},
-                {"id":10000057,"name":"Outer Ring"},
-                {"id":10000058,"name":"Fountain"},
-                {"id":10000059,"name":"Paragon Soul"},
-                {"id":10000060,"name":"Delve"},
-                {"id":10000061,"name":"Tenerifis"},
-                {"id":10000062,"name":"Omist"},
-                {"id":10000063,"name":"Period Basis"},
-                {"id":10000064,"name":"Essence"},
-                {"id":10000065,"name":"Kor-Azor"},
-                {"id":10000066,"name":"Perrigen Falls"},
-                {"id":10000067,"name":"Genesis"},
-                {"id":10000068,"name":"Verge Vendor"},
-                {"id":10000069,"name":"Black Rise"}];
-
-    regions.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));                                // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
-    for(i in regions)
-    {
-        $('<a class="dropdown-item"></a>').attr("href","/dashboard/region?id="+regions[i].id).html(regions[i].name).appendTo('#dropdown_select'); 
-    } 
-
-    // Autocomplete for Search Modal
-    var input = document.getElementById("autocomplete");
-    autocomplete({
-        input: input,
-        emptyMsg: "No System found, try again",
-        preventSubmit: true,
-        disableAutoSelect: true,
-        fetch: function(text, update) {
-            text = text.toLowerCase();
-            //var suggestions = sys_reg_data.filter(n => n.name.toLowerCase().startsWith(text))  
-            var suggestions = sys_reg_data.filter(n => n.name.toLowerCase().includes(text));                   // data structure: {_id: "5fb7ed7de4781119eced07f5", id: 30000101, name: "Uhtafal", region_id: 10000001, region_name: "Derelik"}
-            update(suggestions);
-        },
-        onSelect: function(item) {
-            input.value = item.name;
-        }
-    });
-
-    /* Initialization
-    ---------------------------------------------------------------------------------------------------------------------------------------
-    */
-
-    /* SVG handling block. all features around the SVG itself or which require the SVG loaded
-    ---------------------------------------------------------------------------------------------------------------------------------------
-    */
-    var xml = d3.xml('/media/<%= query %>.svg').mimeType('image/svg+xml').get(function(error, data) {               // load region SVG
-        if (error) throw error;
-
-        // Append SVG content to container
-        d3.select('#map_container').node().append(data.documentElement);
-
-        // different SVG selectors
-        var svg = d3.select('svg');
-        var background = svg.select('[data-node-type=background]');
-        var svg_w = svg.attr('data-width');
-        var svg_h = svg.attr('data-height');
-        var path = d3.selectAll('path');
-        var circle = d3.selectAll('circle[data-node-type="solar_system"]');
-
-        // Color Region
-        d3.selectAll('path[data-node-rid="' + region + '"]')
-            .style("fill", "#1c2c3d");
-
-        // build text boxes for the solar system names
-        var text = [];
-        d3.selectAll('[data-node-type="solar_systems"] > g > text').attr('x', function(d,i){
-            text.push({text:d, pos:i, el: d3.select(this)});
-            return d3.select(this).attr('x');
+    // add popover and tooltip to all solar systems in the current region
+    $('circle[data-node-type="solar_system"]').each(function (index){
+        content = createPopoverHeader($(this));  
+        $(this).attr("data-content", content);
+        $(this).popover({ 
+            trigger: 'manual', 
+            container: 'body', 
+            placement:'bottom', 
+            title: '', 
+            content: content,
+            html: true, 
+            sanitize: false, 
+            template: $('#popover_template').html()
         });
-        d3.selectAll('[data-node-type="solar_systems"] > g').data(text).insert('rect')
-            .attr('x', function(d){ 
-                return d.el.node().getBBox().x - 5}
-                )
-            .attr('y', function(d){
-                return d.el.node().getBBox().y }
-                )
-            .attr('width', function(d){
-                return d.el.node().getBBox().width + 10}
-                )
-            .attr('height', function(d){
-                return d.el.node().getBBox().height }
-                )
-            .style('stroke', 'gray')
-            .style('fill', '#000000')
-            .style("fill-opacity", 0.5);
-
-        // add popover and tooltip to all solar systems in the current region
-        $('circle[data-node-type="solar_system"]').each(function (index){
-            content = createPopoverHeader($(this));  
-            $(this).attr("data-content", content);
-            $(this).popover({ 
-                trigger: 'manual', 
-                container: 'body', 
-                placement:'bottom', 
-                title: '', 
-                content: content,
-                html: true, 
-                sanitize: false, 
-                template: $('#popover_template').html()
-            });
-            $(this).tooltip({ 
-                trigger: 'manual', 
-                container: 'body', 
-                placement:'top', 
-                title:'dummy', 
-                html: true, 
-                sanitize: false, 
-                template : $('#tooltip_template').html()
-            });
+        $(this).tooltip({ 
+            trigger: 'manual', 
+            container: 'body', 
+            placement:'top', 
+            title:'dummy', 
+            html: true, 
+            sanitize: false, 
+            template : $('#tooltip_template').html()
         });
-        
-        // Zoom handling - https://www.freecodecamp.org/news/get-ready-to-zoom-and-pan-like-a-pro-after-reading-this-in-depth-tutorial-5d963b0a153e/      
-        var zoom = d3.zoom()
-            .scaleExtent([max_out, max_in])                            
-            .on('zoom', function(){
-                background.attr('transform', d3.event.transform);                                 
-                zoomTrans.x = d3.event.transform.x;
-                zoomTrans.y = d3.event.transform.y;
-                zoomTrans.scale = d3.event.transform.k;                                    
-                // update popover and tooltip positions during zoom and pan
-                //resetUI();
-                $('[data-node-type="solar_system"]').popover('update');
-                $('[data-node-type="solar_system"]').tooltip('update');
-            });
-        svg.call(zoom);
+    });
 
-        // deaktivate doubleclick
-        svg.on("dblclick.zoom", null); 
+    // SVG related events
+    var zoom = d3.zoom()                                                            // Zoom handling - https://www.freecodecamp.org/news/get-ready-to-zoom-and-pan-like-a-pro-after-reading-this-in-depth-tutorial-5d963b0a153e/   
+        .scaleExtent([max_out, max_in])                            
+        .on('zoom', function(){
+            var transform = d3.event.transform;
+            user_map_settings.zoomTrans.x = transform.x;
+            user_map_settings.zoomTrans.y = transform.y;
+            user_map_settings.zoomTrans.scale = transform.k;  
 
-        // reset UI and Drag on ESC key, move circles with Arrow keys
-        document.onkeydown = function(evt) {
-            evt = evt || window.event;
-            if (evt.keyCode == 27) {
-                resetUI();
-                removeDrag();
-            }
-            if (type < 1){
-                if (evt.keyCode == 37) {  
-                    correctSystem("left");
-                }
-                if (evt.keyCode == 38) {
-                    correctSystem("up");
-                }
-                if (evt.keyCode == 39) {
-                    correctSystem("right");
-                }
-                if (evt.keyCode == 40) {
-                    correctSystem("down");
-                }
-                if (evt.keyCode == 13) {
-                    $('#message').html(JSON.stringify(last_clicked_sys, undefined, 2));
-                    $('#correct_modal').modal('show');
-                }
-            }
-        };
-        function correctSystem(direction){
-            x = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cx");
-            y = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cy");
-            x_b = background.attr('data-x-b');
-            x_m = background.attr('data-x-m');
-            y_b = background.attr('data-y-b');
-            y_m = background.attr('data-y-m');
-            last_clicked_sys = {
-                sys_id: last_clicked_id,
-                x: x,
-                y: y,
-                x_b: x_b,
-                x_m: x_m,
-                y_b: y_b,
-                y_m: y_m
-            };
-            if (direction == "left"){
-                x_old = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cx");
-                d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cx", parseFloat(x_old) - 5);
-            }
-            if (direction == "right"){
-                x_old = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cx");
-                d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cx", parseFloat(x_old) + 5);
-            }
-            if (direction == "up"){
-                y_old = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cy");
-                d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cy", parseFloat(y_old) - 5);
-            }
-            if (direction == "down"){
-                y_old = d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cy");
-                d3.selectAll('circle[data-node-id="' + last_clicked_id + '"]').attr("cy", parseFloat(y_old) + 5);
-            }       
-        }
+            if (user_settings.revert_y_axis == true){
+                transform.y = -transform.y;
+                background.attr('transform', transform.toString());                                 
+                transform.y = -transform.y;
+            } else {      
+                background.attr('transform', transform.toString());                                 
+            }        
 
-        // on click functions for the SVG elements
-        path.on('click', function(){
+            $('[data-node-type="solar_system"]').popover('update');
+            $('[data-node-type="solar_system"]').tooltip('update');
+            //console.log(transform);
+
+        });
+    svg.call(zoom);
+
+    svg.transition().call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(max_out)); // initial centering
+
+    svg.on("dblclick.zoom", null);                                                  // deaktivate doubleclick
+    
+    path.on('click', function(){                                                    // clicks on paths
+        resetUI();
+    })
+ 
+    circle.on('click', function(){                                                  // clicks on circles
+        if (typeof move_alert[0] !== "undefined"){
+            const source_msg_id     = move_alert[0]._id;
+            const source_id         = move_alert[0].message.id;
+            const target_id         = $(this).attr("data-node-id");
+            const target_name       = $(this).attr("data-node-name");
+
+            move_alert[0].message.discordId     = user.uid;
+            move_alert[0].message.avatar        = user.avatar;
+            move_alert[0].message.username      = user.username;
+            move_alert[0].message.discriminator = user.discriminator;
+            move_alert[0].message.stars         = user_settings.stars;
+            move_alert[0].message.id            = target_id;
+            move_alert[0].message.system        = target_name;
+            move_alert[0].message.predecessors.push(source_id);
+
+            const msg = move_alert[0].message;
+            const msg_id = move_alert[0]._id;
+
+            socket.emit('MOVE_MSG', source_msg_id, msg, user.username);
+            removeDrag();
+            refreshTooltips(target_id);
+            refreshTooltips(source_id);
+            last_clicked_id = target_id;
+        } else {
+            var sys_sec         = $(this).attr("data-node-sec");
+                sys_sec         = parseFloat(sys_sec);
+                sys_sec         = sys_sec.toFixed(2);
+            const sys_name      = $(this).attr("data-node-name");
+            const sys_id        = $(this).attr("data-node-id");
+            const solar_sys_x   = $(this).attr("cx");
+            const solar_sys_y   = $(this).attr("cy");  
+
             resetUI();
-        })
+            fillSidebar(sys_id, sys_name, sys_sec);
+            addSelector(sys_id, solar_sys_x, solar_sys_y);
+            showPopover($(this)); 
+            last_clicked_id = sys_id;
+        }            
+    });
 
-        circle.on('click', function(){
-            if (typeof move_alert[0] !== "undefined"){
-                var source_msg_id = move_alert[0]._id;
-                var source_id = move_alert[0].message.id;
-                var target_id = $(this).attr("data-node-id");
-                var target_name = $(this).attr("data-node-name");
-                move_alert[0].message.discordId = uid;
-                move_alert[0].message.avatar = avatar;
-                move_alert[0].message.username = username;
-                move_alert[0].message.discriminator = discriminator;
-                move_alert[0].message.id = target_id;
-                move_alert[0].message.system = target_name;
-                move_alert[0].message.predecessors.push(source_id);
-                var msg = move_alert[0].message;
-                var msg_id = move_alert[0]._id;
-                socket.emit('MOVE_MSG', source_msg_id, msg, username);
-                removeDrag();
-                refreshTooltips(target_id);
-                refreshTooltips(source_id);
-                last_clicked_id = target_id;
-            } else {
-                var sys_sec = $(this).attr("data-node-sec");
-                sys_sec = parseFloat(sys_sec);
-                sys_sec = sys_sec.toFixed(2);
-                var sys_name = $(this).attr("data-node-name");
-                var sys_id = $(this).attr("data-node-id");
-                var solar_sys_x = $(this).attr("cx");
-                var solar_sys_y = $(this).attr("cy");            
-                resetUI();
-                fillSidebar(sys_id, sys_name, sys_sec);
-                addSelector(sys_id, solar_sys_x, solar_sys_y);
-                showPopover($(this)); 
-                last_clicked_id = sys_id;
-            }            
-        });
+    $('#zoom_reset').on('click', function() {                                       // Reset zoom
+        const trans_x = (w - (svg_w)*max_out)/2; 
+        const trans_y = (h - (svg_h)*max_out)/2;
+        svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(max_out));      
+        
+    });
 
-        $('circle[data-node-type="solar_system"]').on("mouseenter", function(e) {
-            if (typeof move_alert[0] !== "undefined") { 
-                var sys_id = $(e.target).attr("data-node-id");
-                var solar_sys_x = $(e.target).attr("cx");
-                var solar_sys_y = $(e.target).attr("cy");
-                addSelector(sys_id, solar_sys_x, solar_sys_y);
+    $('#center').on('click', function() {                                           // Center
+        const trans_x = (w - (svg_w)*user_map_settings.zoomTrans.scale)/2; 
+        const trans_y = (h - (svg_h)*user_map_settings.zoomTrans.scale)/2;
+        svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(user_map_settings.zoomTrans.scale));
+    });
+
+    $('#zoom_in').on('click', function() {                                          // Zoom in
+        const scale = 1.2;
+
+        svg.transition().duration(0).call(zoom.transform, d3.zoomIdentity.translate(user_map_settings.zoomTrans.x * scale, user_map_settings.zoomTrans.y * scale).scale(user_map_settings.zoomTrans.scale * scale));
+        //svg.transition().call(zoom.scaleBy, 1.2);
+    });
+
+    $('#zoom_out').on('click', function() {                                           // Zoom out
+        const scale = 0.8;
+        svg.transition().duration(0).call(zoom.transform, d3.zoomIdentity.translate(user_map_settings.zoomTrans.x * scale, user_map_settings.zoomTrans.y * scale).scale(user_map_settings.zoomTrans.scale * scale));
+    });
+
+    $('circle[data-node-type="solar_system"]').on("mouseenter", function(e) {       // mouse enter during dragging
+        if (typeof move_alert[0] !== "undefined") { 
+            var sys_id = $(e.target).attr("data-node-id");
+            var solar_sys_x = $(e.target).attr("cx");
+            var solar_sys_y = $(e.target).attr("cy");
+            addSelector(sys_id, solar_sys_x, solar_sys_y);
+        }
+    });
+
+    $('circle[data-node-type="solar_system"]').on("mouseleave", function(e) {       // mouse leave during dragging
+        if (typeof move_alert[0] !== "undefined") { 
+            resetUI();
+        }
+    });
+
+    document.onkeydown = function(evt) {                                        // events for key press (ESC and arrow keys and ENTER)
+        evt = evt || window.event;
+        if (evt.keyCode == 27) {
+            resetUI();
+            removeDrag();
+        }
+        if (user.type < 1){
+            if (evt.keyCode == 37) {  
+                correctSystem("left");
             }
-        });
-
-        $('circle[data-node-type="solar_system"]').on("mouseleave", function(e) {
-            if (typeof move_alert[0] !== "undefined") { 
-                resetUI();
+            if (evt.keyCode == 38) {
+                correctSystem("up");
             }
-        });
-
-        // dump array
-        $("#array_dump").on('click', function(){
-            console.log("alert_data", alert_data);
-            console.log("alert_act_data", alert_act_data);
-        });
-
-        // Reset zoom
-        $('#zoom_reset').on('click', function() {
-            trans_x = (w - (svg_w)*max_out)/2; 
-            trans_y = (h - (svg_h)*max_out)/2;
-            svg.transition()
-                .duration(750)
-                .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(max_out));
-        });
-
-        // Center
-        $('#center').on('click', function() {
-            const trans_x = (w - (svg_w)*zoomTrans.scale)/2; 
-            const trans_y = (h - (svg_h)*zoomTrans.scale)/2;
-            svg.transition()
-                .duration(750)
-                .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(zoomTrans.scale));
-        });
-
-        // Search
-        $('#search_send').on('click', function(event) {
-            event.preventDefault();
-            var search_value = $("#autocomplete").val(); 
-            var item_found = sys_reg_data.filter(n => n.name === search_value);  
-
-            if (item_found.length == 0){
-                $(".modal-footer").html('<span class="text-danger font-weight-bolder">System not found in whole Universe !</span>');
-            } else {
-                if (item_found[0].region_id != region){
-                    $(".modal-footer").html('<span class="text-danger font-weight-bolder">System "' + item_found[0].name + '" is in region "' + getRegionNameFromId(item_found[0].region_id) + '"!</span>');
-                } else {
-                    const target = $('circle[data-node-id="' + item_found[0].id + '"]');
-                    const sys_id = item_found[0].id
-                    const solar_sys_x = target.attr("cx");
-                    const solar_sys_y = target.attr("cy");
-
-                    resetUI();
-                    addSelector(sys_id, solar_sys_x, solar_sys_y);
-
-                    const trans_x = (w/2) - (solar_sys_x*zoomTrans.scale); 
-                    const trans_y = (h/2) - (solar_sys_y*zoomTrans.scale);
-                    svg.transition()
-                        .duration(750)
-                        .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(zoomTrans.scale));
-                    
-
-                    $("#autocomplete").val('');
-                    $('#search_modal').modal('toggle');
-                }
+            if (evt.keyCode == 39) {
+                correctSystem("right");
             }
-        });
-        $('.modal').on('hide.bs.modal', function (e) {
-            $(".modal-footer").html('');
-        })
-
-        // toggle labels
-        $('#toggle_labels').on('click', function(event) {
-            toggleLabels($(this));
-        });
-
-        // toggle legend
-        $('#toggle_legend').on('click', function(event) {
-            position = $('#map_legend').position();
-            if (position.left == -300){
-                showLegend();
+            if (evt.keyCode == 40) {
+                correctSystem("down");
             }
-            if (position.left == 0){
-                hideLegend();
+            if (evt.keyCode == 13) {
+                $('#message').html(JSON.stringify(last_clicked_sys, undefined, 2));
+                $('#correct_modal').modal('show');
             }
-        });
+        }
+    };
 
-        // toggle message box
-        $('#toggle_message_box').on('click', function(event) {
-            if (show_message_box == 1){
-                hideMessageBox();
-                show_message_box = 0;
-            } else {
-                showMessageBox();
-                show_message_box = 1;
-            }
-        });
-
-        // Correct
-        $('#correct_send').on('click', function(event) {
+    $('#correct_send').on('click', function(event) {                            // send correction data to server
             event.preventDefault();
             var msg = JSON.parse($('#message').html());
             if ($("#right_check").prop("checked") == true){
@@ -786,415 +296,288 @@ $(function() {
                 msg.label = 'left';
             }
             console.log(msg);
-            socket.emit('COORDS', msg, type);                                                  
+            socket.emit('COORDS', msg, user.type);                                                  
             $("#right_check").prop("checked", false);
             $('#correct_modal').modal('toggle');
             
         });
 
-        // initial centering
-        var trans_x = (w - (svg_w)*max_out)/2; 
-        var trans_y = (h - (svg_h)*max_out)/2;
-        svg.transition()
-            .call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(max_out));
+    $('#search_send').on('click', function(event) {                             // Search
+        event.preventDefault();
+        var search_value = $("#autocomplete").val(); 
+        var item_found = sys_reg_data.filter(n => n.name === search_value);  
 
-        // positon map buttons and helper divs
-        svg_coords = $('svg').position();
-        $("#map_buttons").css({top: svg_coords.top + 10, left: svg_coords.left + 10, position:'absolute'});        
-        $( window ).on( "orientationchange", function() {
-            svg_coords = $('svg').position();
-            $("#map_buttons").css({top: svg_coords.top + 10, left: svg_coords.left + 10, position:'absolute'});
-        });
+        if (item_found.length == 0){
+            $(".modal-footer").html('<span class="text-danger font-weight-bolder">System not found in whole Universe !</span>');
+        } else {
+            if (item_found[0].region_id != region){
+                $(".modal-footer").html('<span class="text-danger font-weight-bolder">System "' + item_found[0].name + '" is in region "' + getRegionNameFromId(item_found[0].region_id) + '"!</span>');
+            } else {
+                const target = $('circle[data-node-id="' + item_found[0].id + '"]');
+                const sys_id = item_found[0].id
+                const solar_sys_x = target.attr("cx");
+                const solar_sys_y = target.attr("cy");
 
+                resetUI();
+                addSelector(sys_id, solar_sys_x, solar_sys_y);
+
+                const trans_x = (w/2) - (solar_sys_x*user_map_settings.zoomTrans.scale); 
+                const trans_y = (h/2) - (solar_sys_y*user_map_settings.zoomTrans.scale);
+                svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.translate(trans_x,trans_y).scale(user_map_settings.zoomTrans.scale));
+
+                $("#autocomplete").val('');
+                $('#search_modal').modal('toggle');
+            }
+        }
     });
-    /* SVG handling block
+    $('.modal').on('hide.bs.modal', function (e) {
+        $(".modal-footer").html('');
+    });
+
+    $('#user_settings').on('click', function() {                             // open user settings modal
+        $('#display_name').val(user_settings.username);
+        $('#stars').val(user_settings.stars);
+        $('#stars_visual').html(stars(user_settings.stars));
+        $('#revert_y_axis').prop('checked', user_settings.revert_y_axis);
+        $('#settings_autocomplete').val(user_settings.home_base);
+        $('#jump_range').val(user_settings.jump_range);
+        $('#audio_alert').prop('checked', user_settings.audio_alert);
+        $('#user_settings_modal').modal('toggle');
+    });
+
+    socket.on('SEND_MAP_SETTINGS', function(settings){                                  //recieving map settings
+        if (typeof settings[0] !== 'undefined'){
+            user_map_settings = settings[0].settings;
+            if(settings[0].settings.show_label == 1){
+                user_map_settings.show_label = 0;
+                toggleLabels($('#toggle_labels'));
+            }
+            if(settings[0].settings.show_label == 0){
+                user_map_settings.show_label = 1;
+                toggleLabels($('#toggle_labels'));
+            }
+            if(settings[0].settings.show_legend == 1){
+                showLegend();
+            }
+            if(settings[0].settings.show_legend == 0){
+                hideLegend();
+            }
+            if(settings[0].settings.show_message_box == 1){
+                showMessageBox()
+            }
+            if(settings[0].settings.show_message_box == 0){
+                hideMessageBox()
+            }
+            if(settings[0].settings.show_tooltips == 1){
+                showTooltips()
+            }
+            if(settings[0].settings.show_tooltips == 0){
+                hideTooltips()
+            }
+            if(settings[0].settings.show_trails == 1){
+                showTrails()
+            }
+            if(settings[0].settings.show_trails == 0){
+                hideTrails()
+            }
+            svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.translate(user_map_settings.zoomTrans.x,user_map_settings.zoomTrans.y).scale(user_map_settings.zoomTrans.scale));
+        }
+    });
+});
+/* --------------------------------------------------------------------------------------------------------------------------------- */
+
+
+
+
+
+
+
+/* Document ready functions which are executed once the page is loaded 
+---------------------------------------------------------------------------------------------------------------------------------------
+*/
+$(function() {
+
+    /* Initialization 
     ---------------------------------------------------------------------------------------------------------------------------------------
     */
+    $('.nav-item').removeClass('active');                                       // deactivate 'active' from menu on all item
+    $('#intel').addClass('active');                                             // set 'active' to current menu item
 
-    /* helper functions
+    $('path[data-node-rid="' + region + '"]').css("fill","#1c2c3d");            // Color Region
+
+    $('button').tooltip();                                                      // assign tooltip to buttons
+    $('[role=button]').tooltip();                                               // assign tooltip to buttons
+
+    if ($('nav').length){                                                       // position map buttons related to navbar
+        $("#map_buttons").stop().animate({top: '65px'});
+        $("#user_buttons").stop().animate({top: '105px'});
+    } else {
+        $("#map_buttons").stop().animate({top: '10px'});
+        $("#user_buttons").stop().animate({top: '50px'});
+    }
+    
+    var input = document.getElementById("autocomplete");                        // Autocomplete for Search Modal
+    autocomplete({
+        input: input,
+        emptyMsg: "No System found, try again",
+        preventSubmit: true,
+        disableAutoSelect: true,
+        fetch: function(text, update) {
+            text = text.toLowerCase();
+            var suggestions = sys_reg_data.filter(n => n.name.toLowerCase().includes(text));                   // data structure: {_id: "5fb7ed7de4781119eced07f5", id: 30000101, name: "Uhtafal", region_id: 10000001, region_name: "Derelik"}
+            update(suggestions);
+        },
+        onSelect: function(item) {
+            input.value = item.name;
+        }
+    });
+    var input2 = document.getElementById("settings_autocomplete");                        // Autocomplete for Search Modal
+    autocomplete({
+        input: input2,
+        emptyMsg: "No System found, try again",
+        preventSubmit: true,
+        disableAutoSelect: true,
+        fetch: function(text, update) {
+            text = text.toLowerCase();
+            var suggestions = sys_reg_data.filter(n => n.name.toLowerCase().includes(text));                   // data structure: {_id: "5fb7ed7de4781119eced07f5", id: 30000101, name: "Uhtafal", region_id: 10000001, region_name: "Derelik"}
+            update(suggestions);
+        },
+        onSelect: function(item) {
+            input2.value = item.name;
+        }
+    });
+
+    /* --------------------------------------------------------------------------------------------------------------------------------- */
+
+
+    /* Events 
     ---------------------------------------------------------------------------------------------------------------------------------------
     */
-    // reset all UI elements like removing selector, closing side-menu, hiding popovers
+    $('button').on("mouseleave",function(){                                     // hide tool tips
+            $(this).tooltip("hide");
+    });
 
-    function createPopoverHeader(elem){
-        const node_id = elem.attr("data-node-id");
-        const node_name = elem.attr("data-node-name");
-        const node_sec = parseFloat(elem.attr("data-node-sec")).toFixed(2);
-        var content = '';
-        if (node_sec > 0.4){
-            content = '<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a><span>&nbsp;in </span><span class="high-sec">&nbsp;' + node_name + ' (' + node_sec + ')</span></div>'; 
+    $('[role=button]').on("mouseleave",function(){                              // hide tool tips
+            $(this).tooltip("hide");
+    });
+
+    $('#toggle_legend').on('click', function(event) {                           // toggel legend
+        position = $('#map_legend').position();
+        if (position.left == -300){
+            showLegend();
         }
-        if (node_sec <= 0.4){
-            content = '<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a><span>&nbsp;in </span><span class="low-sec">&nbsp;' + node_name + ' (' + node_sec + ')</span></div>'; 
+        if (position.left == 0){
+            hideLegend();
         }
-        if (node_sec < 0.0){
-            content = '<div class="d-flex justify-content-center"><a data-id="open_report" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Report Enemy">Report Enemy</a><span>&nbsp;in </span><span class="null-sec">&nbsp;' + node_name + ' (' + node_sec + ')</span></div>'; 
-        }
-        return content;
-    }
+    });
 
-    function resetUI(){
-        $('circle[data-node-type="solar_system"]').popover('hide');                     // close popover
-        hideSidebar();                                     // hide sidebar
-        hideLegend();                                     // hide map legend
-        $("#report_systemname").removeClass();                                          // remove sidebar classes
-        $('[data-type="selector"]').remove();                                           // remove ring selector
-        resetForm($('#report'));                                                                    // reset form
-    }
-
-    function fillSidebar(sys_id, sys_name, sys_sec){
-        $("#report_systemname").html("System: " + sys_name + " (" + sys_sec + ")");     // Set Title
-        if (sys_sec <= 1.0 && sys_sec >= 0.5){
-            $("#report_systemname").addClass("high-sec"); 
-        }
-        if (sys_sec <= 0.4 && sys_sec >= 0.0){
-            $("#report_systemname").addClass("low-sec"); 
-        }
-        if (sys_sec < 0.0){
-            $("#report_systemname").addClass("null-sec"); 
-        }                                  // Color in Security
-        $("#report_systemname").attr("data-node-id", sys_id);                           // save System ID
-        $("#report_systemname").attr("data-node-name", sys_name);                       // save System Name
-    }
-
-    function showSidebar(){
-        $("#mySidenav").stop().animate({right: '0px'});                                        // move sidebar in
-    }
-
-    function hideSidebar(){
-        $("#mySidenav").stop().animate({right: '-300px'});                                     // move sidebar out
-    }
-
-    function showLegend(){
-        if ($('nav').length){
-            $("#map_legend").css("top", "100px");
+    $('#toggle_message_box').on('click', function(event) {                      // toggle message box
+        if (user_map_settings.show_message_box == 1){
+            hideMessageBox();
         } else {
-            $("#map_legend").css("top", "45px");
+            showMessageBox();
         }
-        $("#map_legend").stop().animate({left: '0px'});                                        // move sidebar in
-        $('#toggle_legend').removeClass("btn-outline-danger");
-        $('#toggle_legend').addClass("btn-outline-warning");
-    }
+    });
 
-    function hideLegend(){
-        if ($('nav').length){
-            $("#map_legend").css("top", "100px");
+    $('#toggle_labels').on('click', function(event) {                           // toggle labels
+        toggleLabels($(this));
+    });
+
+    $('#toggle_tooltips').on('click', function(event) {                         // toggle tooltips
+        if (user_map_settings.show_tooltips == 1){
+            hideTooltips();
         } else {
-            $("#map_legend").css("top", "45px");
+            showTooltips();
         }
-        $("#map_legend").stop().animate({left: '-300px'});                                     // move sidebar out
-        $('#toggle_legend').removeClass("btn-outline-warning");
-        $('#toggle_legend').addClass("btn-outline-danger");
-    }
+    });
 
-    function showMessageBox(){
-        $("#message_box").stop().animate({bottom: '0px'});                                        // move sidebar in
-        $("#message_toggle").stop().animate({bottom: '200px'}); 
-    }
-
-    function hideMessageBox(){
-        $("#message_box").stop().animate({bottom: '-200px'});                                        // move sidebar in
-        $("#message_toggle").stop().animate({bottom: '0px'}); 
-    }
-
-    function fillPopover(msg){
-
-        $('#drag_part').attr("data-msg-id", function(){
-            return msg._id;
-        });
-
-        var avatar = '';
-        if (msg.message.avatar == ''){
-            avatar = '<img src="https://cdn.discordapp.com/embed/avatars/0.png" width="20" height="20" class="rounded-circle" loading="lazy" data-toggle="tooltip" data-placement="bottom" title="' + msg.message.username + '"> ' + msg.message.username
+    $('#toggle_trails').on('click', function(event) {                           // toggle trails
+        if (user_map_settings.show_trails == 1){
+            hideTrails();
         } else {
-            avatar = '<img src="https://cdn.discordapp.com/avatars/' + msg.message.discordId + '/' + msg.message.avatar + '.png" width="20" height="20" class="rounded-circle" loading="lazy" data-toggle="tooltip" data-placement="bottom" title="' + msg.message.username + '"> ' + msg.message.username;
+            showTrails();
         }
+    });
 
-        $('#pop_pic').html(avatar);
-        $('#pop_time').html('(' + convertDateTime(msg.dateChanged) + ')');
-        $('#pop_threat').html(function(){
-            var content = '';
-            if (msg.message.gatecamp == true) {
-                content = content + '<span class="text-danger font-weight-bolder">!!! </span><img src="/media/stargate.png"> ';
-            }
-            if (msg.message.stationcamp == true) {
-                content = content + '<span class="text-danger font-weight-bolder">!!! </span><img src="/media/station.png"> ';
-            }
-            if (msg.message.bubble == true) {
-                content = content + '<span class="text-danger font-weight-bolder">!!! </span><img src="/media/bubble.png"> ';
-            }
-            return content;
-        });     
+    $("#array_dump").on('click', function(){                                    // Dump Arrays
+        console.log("alert_data", alert_data);
+        console.log("alert_act_data", alert_act_data);
+        console.log("user_map_settings: ", user_map_settings);
+        console.log("user_settings: ", user_settings);
+        console.log("move_alert", move_alert);
+    });
 
-        $('#pop_ships').html(function(){
-            var content = '';
-            if (msg.message.shiptype.u > 0) {
-                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.u + 'x</span><strong> ?</strong></div>';
-            }
-            if (msg.message.shiptype.f > 0) {
-                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.f + 'x</span><img src="/media/frigate.png"></div>';
-            }
-            if (msg.message.shiptype.d > 0) {
-                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.d + 'x</span><img src="/media/destroyer.png"></div>';
-            }
-            if (msg.message.shiptype.c > 0) {
-                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.c + 'x</span><img src="/media/cruiser.png"></div>';
-            }
-            if (msg.message.shiptype.bc > 0) {
-                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.bc + 'x</span><img src="/media/battlecruiser.png"></div>';
-            }
-            if (msg.message.shiptype.bs > 0) {
-                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.bs + 'x</span><img src="/media/battleship.png"></div>';
-            }
-            if (msg.message.shiptype.i > 0) {
-                content = content + '<div class="ml-2"><span class="text-danger font-weight-bolder">' + msg.message.shiptype.i + 'x</span><img src="/media/miningbarge.png"></div>';
-            }
-            return content;
-        });
-
-        $('#pop_buttons').html(function(){
-            var content = '';
-            content = content + '<a data-id="delete_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-danger btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Archive Report"><span class="fas fa-trash-alt" aria-hidden="true"> Archive</span></a>';
-            content = content + '<a data-id="edit_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Edit Report"><span class="fas fa-edit" aria-hidden="true"> Edit</span></a>';
-            content = content + '<a data-id="move_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Move Report"><span class="fas fa-expand-arrows-alt" aria-hidden="true"> Move</span></a>';
-            return content;
-        });
-
-        $('#pop_location').html(function(){
-            if (msg.message.loc.length > 0) {
-                return '<span class="text-warning font-weight-bolder">@: <span class="text-white font-weight-normal">' + msg.message.loc + '</span></span> ';
-            } else {
-                return null;
-            }
-        });
-
-        $('#pop_comment').html(function(){
-            if (msg.message.comment.length > 0) {
-                return '<span class="text-warning font-weight-bolder">txt: <span class="text-white font-weight-normal">' + msg.message.comment + '</span></span> ';
-            } else {
-                return null;
-            }
-        });
-
-        return $('#popover_content').html();
-    }
-
-    function showPopover(el){
-        el.popover('show');                                                             // show popover on element
-    }
-
-    function hidePopover(el){
-        el.popover('hide');                                                             // hide popover on element
-    }
-
-    function refreshTooltips(node_id){
-        $('circle[data-node-id="' + node_id + '"]').tooltip('hide');                     // hide it
-        $('circle[data-node-id="' + node_id + '"]').tooltip('show');                     // show it
-    }
-
-    function addSelector(sys_id, solar_sys_x, solar_sys_y){
-        var solar_sys = d3.selectAll('g[data-node-id="' + sys_id + '"]')                // select current solar system
-            .insert('circle', ":first-child")                                           // add a child in front
-            .attr("data-type", "selector")                                              // define type = selector
-            .attr("cx", solar_sys_x)                                                    // x coordinate
-            .attr("cy", solar_sys_y)                                                    // y coordinate
-            .attr("r", 22)                                                              // radius
-            .style("fill-opacity", 0.0)                                                 // no fill opacity
-            .style("stroke", "#d10f0f")                                                 // ring line color
-            .style("stroke-width", 4);                                                  // ring thickness
-    }
-
-    function updateData(){
-        //alert_data = [];
-        const unique_id = new Set(alert_data.map(item => item.message.id));                                     // alerts with same id
-        
-        for (id of unique_id){
-            const alerts_for_id = alert_data.filter(item => item.message.id === id)
-            
-            content = createPopoverHeader($('circle[data-node-id="' + id + '"]'));  
-
-            for (j in alerts_for_id){                  
-                const sum_number = alert_data                                                               
-                        .filter(item => item.message.id === id)
-                        .reduce((sum, result) => sum + result.message.number, 0);
-
-                d3.selectAll('circle[data-node-id="' + id + '"]').style("fill", "#d10f0f");  // fill circle red
-                d3.select('path[data-node-id="' + id + '"]').style("fill", "#801d1d");       // color background
-
-                const latest_date = alert_data                                                               
-                        .filter(item => item.message.id === id)
-                        .sort((a,b) => new Date(b.dateChanged).getTime() - new Date(a.dateChanged).getTime())[0];
-                var title = '<span class="text-danger font-weight-bolder">' + sum_number +'</span><span style="font-size: 10px"> (' + convertDateTime(latest_date.dateChanged) +')</span>';  // tooltip updates (showing and data)
-             
-                $('circle[data-node-id="' + id + '"]').attr("data-original-title", title);
-                $('circle[data-node-id="' + id + '"]').tooltip('show');
-                
-                content = content + fillPopover(alerts_for_id[j]);
-                $('circle[data-node-id="' + id + '"]').attr("data-content", content);
-            }
-        }        
-    }
-
-    function updateMessageBox(){
-        $('#message_box').html('');
-
-        for (i in alert_act_data){
-            var action = '';
-            switch (alert_act_data[i].action){
-                case "CREATED":
-                    action = '<span class="high-sec">[ADD]</span>';
-                    break;
-                case "EDITED":
-                    action = '<span class="low-sec">[EDIT]</span>';
-                    break;
-                case "ARCHIEVED":
-                    action = '<span class="null-sec">[ARCH]</span>';
-                    break;
-                case "MOVED":
-                    action = '<span class="low-sec">[MOVE]</span>';
-                    break;
-            }
-
-            const ago = convertDateTime(alert_act_data[i].date);
-            const system = '<span class="friendly">' + alert_act_data[i].msg.message.system + '</span>';
-            function ships(msg){
-                var content = '';
-                if (msg.message.shiptype.u > 0) {
-                    content += '<span class="text-danger">' + msg.message.shiptype.u + " unknown </span>";
-                }
-                if (msg.message.shiptype.f > 0) {
-                    content += '<span class="text-danger">' + msg.message.shiptype.f + " frigate </span>";
-                }
-                if (msg.message.shiptype.d > 0) {
-                    content += '<span class="text-danger">' + msg.message.shiptype.d + " destroyer </span>";
-                }
-                if (msg.message.shiptype.c > 0) {
-                    content += '<span class="text-danger">' + msg.message.shiptype.c + " cruiser </span>";
-                }
-                if (msg.message.shiptype.bc > 0) {
-                    content += '<span class="text-danger">' + msg.message.shiptype.bc + " BC </span>";
-                }
-                if (msg.message.shiptype.bs > 0) {
-                    content += '<span class="text-danger">' + msg.message.shiptype.bs + " BS </span>";
-                }
-                if (msg.message.shiptype.i > 0) {
-                    content += '<span class="text-danger">' + msg.message.shiptype.i + " industrial </span>";
-                }
-                return content;
-            };
-            const username = alert_act_data[i].username;
-
-            var inactive = '';
-            if(alert_act_data[i].msg.active == false){
-                inactive = '<span> [archieved]</span>';
-            }
-
-            const text  = '<div class="row" style="font-size:10px">'
-                        + '<div class="col pr-1 pl-1">'
-                        + ago
-                        + ' - '
-                        + system
-                        + ' : '
-                        + ships(alert_act_data[i].msg)
-                        + action
-                        + ' '
-                        + ' by '
-                        + username                       
-                        + inactive
-                        + '</div></div>';
-
-            $('#message_box').prepend(text);
+    $('#save_map_settings').on('click', function() {                             // save users map settings
+        const settings = {
+            "discordId":    user.uid,
+            "username":     user.username,
+            "settings":     user_map_settings
         }
-        
-   
-        //$('#message_box').stop().animate({scrollTop: $('#message_box').prop("scrollHeight")}, 500); // https://stackoverflow.com/questions/10776085/append-content-to-div-and-scroll-animate-to-bottom
+        socket.emit('SAVE_MAP_SETTINGS', settings, user.username);
+    });
+    /* --------------------------------------------------------------------------------------------------------------------------------- */
 
-    }
-
-    function resetForm($form) {                                                                 
-        $form.find('input:text, input:password, input:file, select, textarea').val(0);
-        $('#report_location').val('');
-        $('#report_comment').val('');
-        $form.find('input:radio, input:checkbox')
-            .prop('checked',false).prop('selected',false);
-        $("#report_send").attr("data_type", "save");
-        $("#report_send").attr("data-msg-id", "");
-    }
-
-    function createDrag(move_alert, drag_id){
-        drag_template = $('#drag_item');
-        var content = $('div#drag_part[data-msg-id="' + drag_id + '"]').html();
-        drag_template.removeClass("invisible");
-        drag_template.html(content);
-    }
-
-    function removeDrag(){
-        drag_template = $('#drag_item');
-        move_alert = [];
-        drag_template.addClass("invisible");
-        drag_template.html();
-        drag_template = null;
-    }
-
-    function convertDateTime(datetime){
-            const changed =  DateTime.fromISO(datetime).minus({ seconds: 10 }).toRelative({ unit: "minutes", locale: "en" });
-            const changed_small = changed.split(" ");
-            const changed_final = changed_small[0] + "m " + changed_small[2];
-            return changed_final;
-    }
-
-    function getRegionNameFromId(id){
-        const region_found = sys_reg_data.find(function (data) {
-            if (data.region_id == id){
-                return data.region_name;
-            } 
-        });
-        return region_found.region_name;
-    }
-
-    function toggleLabels(button){
-        if (show_label == 1) {
-            d3.selectAll('[data-node-type="solar_systems"] > g > rect').style("fill-opacity", 0.0);
-            d3.selectAll('[data-node-type="solar_systems"] > g > rect').style("stroke-opacity", 0.0);
-            d3.selectAll('[data-node-type="solar_systems"] > g > text').style("fill-opacity", 0.0);
-            button.removeClass("btn-outline-warning");
-            button.addClass("btn-outline-danger");
-            show_label = 0;
-        } else {
-            d3.selectAll('[data-node-type="solar_systems"] > g > rect').style("fill-opacity", 0.5);
-            d3.selectAll('[data-node-type="solar_systems"] > g > rect').style("stroke-opacity", 1.0);
-            d3.selectAll('[data-node-type="solar_systems"] > g > text').style("fill-opacity", 0.7);
-            button.removeClass("btn-outline-danger");
-            button.addClass("btn-outline-warning");
-            show_label = 1;
-        }
-
-
-    }
-    /* helper functions
-    ---------------------------------------------------------------------------------------------------------------------------------------
-    */
 
     /* socket.io functions
     delegate click event from the document as popovers are created dynamically and have initially no events bound - https://stackoverflow.com/questions/54618503/how-to-click-on-a-link-inside-the-data-content-of-a-pop-over
     ---------------------------------------------------------------------------------------------------------------------------------------
     */
-    $(document).on("click", '[data-id="open_report"]', function(event) {
+    $(document).on("click", '[data-id="open_report"]', function(event) {        // Create Alert clicked
         event.preventDefault(); 
         resetForm($('#report'));      
-        showSidebar();                                            
+        $('#report_enemy_modal').modal('show');     
+        $('#5min').prop('checked',true);
     });
 
-    $(document).on("click", '[data-id="delete_report"]', function(event) {
+    $(document).on("click", '[data-id="green_report"]', function(event) {        // Create Alert clicked
+        event.preventDefault(); 
+        node_id             = $("#report_systemname").attr("data-node-id");
+        node_name           = $("#report_systemname").attr("data-node-name");
+        const DateTime = luxon.DateTime;
+        const dateExpire =  DateTime.local().plus({ minutes: 5 }).toISO();
+        message = {
+            "id": node_id,
+            "system": node_name,
+            "type": "green",
+            "number": 0,
+            "loc": '', 
+            "comment": '', 
+            "shiptype" : {
+                "u": 0,
+                "f": 0,
+                "d": 0,
+                "c": 0,
+                "bc": 0,
+                "bs": 0,
+                "i": 0
+            },
+            "gatecamp": false,
+            "stationcamp": false,
+            "bubble": false,
+            "dateExpire": dateExpire,
+            "discordId": user.uid,
+            "avatar": user.avatar,
+            "username": user.username,
+            "discriminator": user.discriminator,
+            "stars": user_settings.stars
+        };
+
+        socket.emit('SAVE_MSG', message, user.username);
+        
+        resetForm($('#report'));
+        hidePopover($('circle[data-node-type="solar_system"]'))   
+    });
+
+    $(document).on("click", '[data-id="delete_report"]', function(event) {      // Archiv Alert clicked
         event.preventDefault();
-        socket.emit('DEL_MSG', $(this).attr("data-msg-id"), username);
+        socket.emit('DEL_MSG', $(this).attr("data-msg-id"), user.username);
         var node_id = $(this).attr("data-node-id");
         refreshTooltips(node_id);
         var all_solar_systems = $('circle[data-node-type="solar_system"]');
         hidePopover(all_solar_systems);        
     });
 
-    $(document).on("click", '[data-id="edit_report"]', function(event) {
+    $(document).on("click", '[data-id="edit_report"]', function(event) {        // Edit Alert clicked
         event.preventDefault();
         var alert = alert_data.filter(item => item._id == $(this).attr("data-msg-id"));
         $("#report_unknown_count").val(alert[0].message.shiptype.u);
@@ -1211,25 +594,34 @@ $(function() {
         $("#report_bubble").prop("checked", alert[0].message.bubble);
         $("#report_send").attr("data_type", "update");
         $("#report_send").attr("data-msg-id", $(this).attr("data-msg-id"));
-        showSidebar();               
+        $('#5min').prop('checked',true);
+        $('#report_enemy_modal').modal('show');             
     });
 
-    $(document).on("click", '[data-id="move_report"]', function(event) {
+    $(document).on("click", '[data-id="confirm_report"]', function(event) {        // Edit Alert clicked
+        event.preventDefault();
+        var alert = alert_data.filter(item => item._id == $(this).attr("data-msg-id"));
+        var message = alert[0].message;
+        const msg_id = $(this).attr("data-msg-id");
+        console.log(message);
+        socket.emit('CONFIRM_MSG', msg_id, message, user.username);           
+    });
+
+    $(document).on("click", '[data-id="move_report"]', function(event) {        // Move Alert clicked
         event.preventDefault();
         drag_id = $(this).attr("data-msg-id");
         move_alert = alert_data.filter(item => item._id == drag_id);
-        createDrag(move_alert, drag_id);
+        createDrag(drag_id);
         resetUI();          
     });
 
-    $(document).on("mousemove", function(e) {
+    $(document).on("mousemove", function(e) {                                   // Dragging
         if (typeof move_alert[0] !== "undefined") {
             drag_template.offset({'top': e.clientY + 5, 'left': e.clientX + 5 });
         }
     });
 
-    // Report Form is sent
-    $("#report").submit(function(e) {
+    $("#report").submit(function(e) {                                           // Report Form is sent
         e.preventDefault(); 
         msg_id              = $("#report_send").attr("data-msg-id");
         node_id             = $("#report_systemname").attr("data-node-id");
@@ -1247,7 +639,11 @@ $(function() {
         gatecamp            = $("#report_gatecamp").prop("checked");
         stationcamp         = $("#report_stationcamp").prop("checked");
         bubble              = $("#report_bubble").prop("checked");
-        
+        expire              = $('input[name="ExpireOptions"]:checked').val();
+
+        const DateTime = luxon.DateTime;
+        const dateExpire =  DateTime.local().plus({ minutes: expire }).toISO();
+
         message = {
             "id": node_id,
             "system": node_name,
@@ -1267,59 +663,76 @@ $(function() {
             "gatecamp": gatecamp,
             "stationcamp": stationcamp,
             "bubble": bubble,
-            "discordId": uid,
-            "avatar": avatar,
-            "username": username,
-            "discriminator": discriminator
+            "dateExpire": dateExpire,
+            "discordId": user.uid,
+            "avatar": user.avatar,
+            "username": user.username,
+            "discriminator": user.discriminator,
+            "stars": user_settings.stars
         };
-        
         var send_type = $("#report_send").attr("data_type");
-
         if(send_type == "save") {
-            socket.emit('SAVE_MSG', message, username);
+            socket.emit('SAVE_MSG', message, user.username);
         }
-
         if(send_type == "update") {
-            socket.emit('EDIT_MSG', msg_id, message, username);
+            socket.emit('EDIT_MSG', msg_id, message, user.username);
         }
+        resetForm($('#report'));
+        $('#report_enemy_modal').modal('hide'); 
+        hidePopover($('circle[data-node-type="solar_system"]'))                                                              
         
-        resetForm($('#report'));                                                                    // reset form
-        hideSidebar();                                                                              // close side menu
-        hidePopover($('circle[data-node-type="solar_system"]'))                                     // close popovers                                                                  
-        
-        //$('circle[data-node-type="solar_system"]').popover('hide');
         return false;
     });
 
-    socket.on('SEND_MSG', function(msg_act, msg){                                                    //recieving messages    
+    $('#settings_send').on('click', function() {                             // save user settings
+        event.preventDefault(); 
+
+        user_settings.username = $('#display_name').val();
+        user_settings.stars = $('#stars').val();
+        user_settings.revert_y_axis = $('#revert_y_axis').prop('checked');
+        user_settings.home_base = $('#settings_autocomplete').val();
+        user_settings.jump_range = $('#jump_range').val();
+        user_settings.audio_alert = $('#audio_alert').prop('checked');
+        
+        socket.emit('SAVE_USER_SETTINGS', user_settings, user.username);
+        $('#user_settings_modal').modal('toggle');
+    });
+
+    socket.on('SEND_MSG', function(msg_act, msg){                                       //recieving single messages    
         alert_data.push(msg);
-        alert_act_data.push(msg_act);                                                     // push all to array of alerts 
-        updateMessageBox();
+        alert_act_data.push(msg_act); 
+        updateMessageBox(alert_act_data);
         updateData();   
     });
 
-    socket.on('SEND_MSG_ALL', function(msg){                                                //recieving ALL messages
+    socket.on('SEND_MSG_ALL', function(msg){                                            //recieving ALL messages
         alert_data = msg;
         $('circle[data-node-type="solar_system"]').each(function (index){
             content = createPopoverHeader($(this));  
             $(this).attr("data-content", content);
         });
-        $('circle[data-node-type="solar_system"]').tooltip('hide');                     // if there is no message hide remaining one
-        $('circle[data-node-type="solar_system"]').popover('hide');                     // hide open popvers as well
-        d3.selectAll('circle[data-node-type="solar_system"]').style("fill", "#000000"); // reset fill color
-        d3.selectAll('path').style("fill", "#191d21");                                  // reset fill color
-        d3.selectAll('path[data-node-rid="' + region + '"]').style("fill", "#1c2c3d");        // reset fill color
+        $('circle[data-node-type="solar_system"]').tooltip('hide');
+        $('circle[data-node-type="solar_system"]').popover('hide');
+        d3.selectAll('circle[data-node-type="solar_system"]').style("fill", "#000000");
+        d3.selectAll('path').style("fill", "#191d21");
+        d3.selectAll('path[data-node-rid="' + region + '"]').style("fill", "#1c2c3d");
         updateData();   
     });
 
-    socket.on('SEND_MSG_ACT_ALL', function(msg_act){  
+    socket.on('SEND_MSG_ACT_ALL', function(msg_act){                                    //recieving ALL activity messages
         alert_act_data = msg_act;
-        updateMessageBox();
+        updateMessageBox(alert_act_data);
     });
 
-    socket.on('GET_SYS_REG_DATA', function(msg){                                            //recieving ALL system and region data
+    socket.on('GET_SYS_REG_DATA', function(msg){                                        //recieving ALL system and region data
             sys_reg_data = msg;  
             region_name = getRegionNameFromId(region);
+    });
+
+    socket.on('SEND_USER_SETTINGS', function(settings){                                  //recieving map settings
+        if (typeof settings[0] !== 'undefined'){
+            user_settings = settings[0];
+        }
     });
     /* socket.io functions
     ---------------------------------------------------------------------------------------------------------------------------------------
@@ -1330,13 +743,89 @@ $(function() {
     */
     function updateDateTime(){
         updateData();
-        updateMessageBox();
+        updateMessageBox(alert_act_data);
     }
     setInterval(updateDateTime, 1000 * 10); // every 10 sec
     /* regular updates on popovers and tooltips to update DateTime
     ---------------------------------------------------------------------------------------------------------------------------------------
     */
 });
+
+
+    // fill dropdown
+    // regions = [ {"id":10000001,"name":"Derelik"},
+    //             {"id":10000002,"name":"The Forge"},
+    //             {"id":10000003,"name":"Vale of the Silent"},
+    //             {"id":10000004,"name":"UUA-F4"},
+    //             {"id":10000005,"name":"Detorid"},
+    //             {"id":10000006,"name":"Wicked Creek"},
+    //             {"id":10000007,"name":"Cache"},
+    //             {"id":10000008,"name":"Scalding Pass"},
+    //             {"id":10000009,"name":"Insmother"},
+    //             {"id":10000010,"name":"Tribute"},
+    //             {"id":10000011,"name":"Great Wildlands"},
+    //             {"id":10000012,"name":"Curse"},
+    //             {"id":10000013,"name":"Malpais"},
+    //             {"id":10000014,"name":"Catch"},
+    //             {"id":10000015,"name":"Venal"},
+    //             {"id":10000016,"name":"Lonetrek"},
+    //             {"id":10000017,"name":"J7HZ-F"},
+    //             {"id":10000018,"name":"The Spire"},
+    //             {"id":10000019,"name":"A821-A"},
+    //             {"id":10000020,"name":"Tash-Murkon"},
+    //             {"id":10000021,"name":"Outer Passage"},
+    //             {"id":10000022,"name":"Stain"},
+    //             {"id":10000023,"name":"Pure Blind"},
+    //             {"id":10000025,"name":"Immensea"},
+    //             {"id":10000027,"name":"Etherium Reach"},
+    //             {"id":10000028,"name":"Molden Heath"},
+    //             {"id":10000029,"name":"Geminate"},
+    //             {"id":10000030,"name":"Heimatar"},
+    //             {"id":10000031,"name":"Impass"},
+    //             {"id":10000032,"name":"Sinq Laison"},
+    //             {"id":10000033,"name":"The Citadel"},
+    //             {"id":10000034,"name":"The Kalevala Expanse"},
+    //             {"id":10000035,"name":"Deklein"},
+    //             {"id":10000036,"name":"Devoid"},
+    //             {"id":10000037,"name":"Everyshore"},
+    //             {"id":10000038,"name":"The Bleak Lands"},
+    //             {"id":10000039,"name":"Esoteria"},
+    //             {"id":10000040,"name":"Oasa"},
+    //             {"id":10000041,"name":"Syndicate"},
+    //             {"id":10000042,"name":"Metropolis"},
+    //             {"id":10000043,"name":"Domain"},
+    //             {"id":10000044,"name":"Solitude"},
+    //             {"id":10000045,"name":"Tenal"},
+    //             {"id":10000046,"name":"Fade"},
+    //             {"id":10000047,"name":"Providence"},
+    //             {"id":10000048,"name":"Placid"},
+    //             {"id":10000049,"name":"Khanid"},
+    //             {"id":10000050,"name":"Querious"},
+    //             {"id":10000051,"name":"Cloud Ring"},
+    //             {"id":10000052,"name":"Kador"},
+    //             {"id":10000053,"name":"Cobalt Edge"},
+    //             {"id":10000054,"name":"Aridia"},
+    //             {"id":10000055,"name":"Branch"},
+    //             {"id":10000056,"name":"Feythabolis"},
+    //             {"id":10000057,"name":"Outer Ring"},
+    //             {"id":10000058,"name":"Fountain"},
+    //             {"id":10000059,"name":"Paragon Soul"},
+    //             {"id":10000060,"name":"Delve"},
+    //             {"id":10000061,"name":"Tenerifis"},
+    //             {"id":10000062,"name":"Omist"},
+    //             {"id":10000063,"name":"Period Basis"},
+    //             {"id":10000064,"name":"Essence"},
+    //             {"id":10000065,"name":"Kor-Azor"},
+    //             {"id":10000066,"name":"Perrigen Falls"},
+    //             {"id":10000067,"name":"Genesis"},
+    //             {"id":10000068,"name":"Verge Vendor"},
+    //             {"id":10000069,"name":"Black Rise"}];
+
+    // regions.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));                                // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
+    // for(i in regions)
+    // {
+    //     $('<a class="dropdown-item"></a>').attr("href","/dashboard/region?id="+regions[i].id).html(regions[i].name).appendTo('#dropdown_select'); 
+    // } 
 
 </script>
 

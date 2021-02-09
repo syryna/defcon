@@ -1,3 +1,129 @@
+
+<!-- container for map buttons -->
+
+
+<div id="map_buttons" class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
+    <div class="btn-group" role="group" aria-label="First group">
+        <!-- control the view -->
+        <button type="button" class="btn btn-outline-warning btn-sm" id="zoom_reset" data-toggle="tooltip" data-placement="bottom" 
+            title="Reset Position and Zoom"><span class="fas fa-expand fa-fw" aria-hidden="true"></span></button>
+        <button type="button" class="btn btn-outline-warning btn-sm" id="center" data-toggle="tooltip" data-placement="bottom" 
+            title="Center the Map"><span class="fas fa-compress-arrows-alt fa-fw" aria-hidden="true"></span></button>
+        <button type="button" class="btn btn-outline-warning btn-sm" id="zoom_in" data-toggle="tooltip" data-placement="bottom" 
+            title="Zoom In"><span class="fas fa-plus fa-fw" aria-hidden="true"></span></button>
+        <button type="button" class="btn btn-outline-warning btn-sm" id="zoom_out" data-toggle="tooltip" data-placement="bottom" 
+            title="Zoom Out"><span class="fas fa-minus fa-fw" aria-hidden="true"></span></button>
+    </div>
+    <div class="btn-group" role="group" aria-label="Second group">
+        <!-- search -->
+        <button type="button" class="btn btn-outline-warning btn-sm" id="search_loc" data-toggle="modal" data-target="#search_modal"  data-placement="bottom" 
+            title="Search for System"><span class="fas fa-search-location fa-fw" aria-hidden="true"></span></button>
+    </div>
+    <div class="btn-group" role="group" aria-label="Third group">
+        <!-- switch UI -->
+        <% if (flavor == 'mobile') { %>
+            <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>" role="button" data-toggle="tooltip" data-placement="bottom" title="Return to Desktop Version"><span class="fas fa-desktop fa-fw" aria-hidden="true"></span></a>
+        <% } else {%> 
+            <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>&flavor=mobile" role="button" data-toggle="tooltip" data-placement="bottom" title="Open Clean Window for Mobiles"><span class="fas fa-tablet-alt fa-fw" aria-hidden="true"></span></a>
+        <%}%> 
+    </div>
+</div>
+
+<div id="user_buttons" class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
+    <div class="btn-group" role="group" aria-label="First group">
+        <!-- user bar -->
+        <button type="button" class="btn btn-outline-danger btn-sm" id="toggle_legend" data-toggle="tooltip" data-placement="bottom" 
+            title="Turn ON/OFF legend"><span class="fas fa-question fa-fw" aria-hidden="true"></span></button>
+        <button type="button" class="btn btn-outline-success btn-sm" id="toggle_labels" data-toggle="tooltip" data-placement="bottom" 
+            title="Turn ON/OFF labels"><span class="fas fa-tag fa-fw" aria-hidden="true"></span></button>
+        <button type="button" class="btn btn-outline-danger btn-sm" id="toggle_message_box" data-toggle="tooltip" data-placement="bottom" 
+            title="Turn ON/OFF Alert Box"><span class="far fa-envelope fa-fw" aria-hidden="true"></span></button> 
+        <button type="button" class="btn btn-outline-success btn-sm" id="toggle_tooltips" data-toggle="tooltip" data-placement="bottom" 
+            title="Turn ON/OFF System Tooltips"><span class="fas fa-comment-alt fa-fw" aria-hidden="true"></span></button> 
+        <button type="button" class="btn btn-outline-success btn-sm" id="toggle_trails" data-toggle="tooltip" data-placement="bottom" 
+            title="Turn ON/OFF Alert Trails"><span class="fas fa-share-alt fa-fw" aria-hidden="true"></span></button> 
+        <button type="button" class="btn btn-outline-warning btn-sm" id="save_map_settings" data-toggle="tooltip" data-placement="bottom" 
+            title="Save Positions and Labels for this region"><span class="far fa-save fa-fw" aria-hidden="true"></span></button>
+    </div>
+    <div class="btn-group" role="group" aria-label="Second group">
+        <!-- toggle button -->
+        <a id="user_settings" class="btn btn-outline-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Change User Settings"><span class="fas fa-user-cog fa-fw" aria-hidden="true"></span></a>
+        <a id="array_dump" class="btn btn-outline-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show message array"><span class="fas fa-layer-group fa-fw" aria-hidden="true"></span></a>
+    </div>
+</div>
+
+<!-- container for map legend -->
+<div id="map_legend">
+    <img src="/media/legend.svg" width="300px", height="225px"> 
+</div>
+
+<!-- container for message box -->
+<!-- <div id="message_toggle">
+    <button type="button" class="btn btn-outline-warning btn-sm" id="toggle_message_box" data-toggle="tooltip" data-placement="top" 
+        title="Show last Alerts"><span class="far fa-envelope" aria-hidden="true"></span></button> 
+</div> -->
+<div id="message_box" class="container overflow-auto">
+</div>
+
+<!-- container for the popover -->
+<div id="popover_template" class="invisible">
+    <div class="popover" role="tooltip">
+        <div class="arrow"></div>
+        <div class="popover-body"></div>
+    </div>
+</div>
+
+<!-- container for the popover content -->
+<div id="popover_content" class="invisible">
+    <div class="container p-0">
+        <div id="drag_part" class="container p-0">
+            <div class="row m-0">
+                <div id="pop_pic" class="col-8 p-0 mt-1 border-top border-dark text-truncate" style="font-size: 12px">
+                </div>
+                <div id="pop_time" class="col-4 p-0 mt-1 border-top border-dark d-flex justify-content-end" style="font-size: 12px">
+                </div>
+            </div>
+            <div class="row m-0">
+                <div id="pop_threat" class="col-auto p-0">
+                </div>
+                <div id="pop_ships" class="col-auto p-0 d-flex flex-wrap">
+                </div>
+            </div>
+            <div class="row m-0">
+                <div id="pop_location" class="col-12 p-0 text-truncate" style="font-size: 12px">
+                </div>
+            </div>
+            <div class="row m-0">
+                <div id="pop_comment" class="col-12 p-0 text-truncate" style="font-size: 12px">
+                </div>
+            </div>
+            <div class="row m-0">
+                <div id="pop_buttons" class="col-12 p-0 border-bottom border-dark d-flex justify-content-around">
+                </div>
+            </div> 
+        </div>     
+    </div>
+</div>
+
+<!-- container for the tooltip -->
+<div id="tooltip_template" class="invisible">
+    <div class="tooltip" role="tooltip">
+        <div class="arrow"></div>
+        <div class="tooltip-inner">
+            <div class="d-flex justify-content-center">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- container for the drag_item -->
+<div id="drag_item" class="invisible dragable">
+    <div class="popover" role="tooltip">
+        <div class="arrow"></div>
+        <div class="popover-body"></div>
+    </div>
+</div>
+
 <!-- About Modal -->
 <div class="modal fade" id="about_modal" tabindex="-1" aria-labelledby="correctModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -12,30 +138,58 @@
             <div class="container">
                 <div class="row">
                     <div class="col-12 d-flex justify-content-center">
-                        <span style="font-size:12px">Version: 1.2</span>
+                        <span style="font-size:12px">Version: 1.3</span>
                     </div>
                 </div>
                 <hr>
                 <div class="row">
-                    <div class="col-6 d-flex justify-content-center">
-                        <img src="/media/Brain.png" width="120px", height="120px">
+                    <div class="col-4 d-flex justify-content-center">
+                        <img src="/media/brain.png" width="120px", height="120px">
                     </div>
-                    <div class="col-6 d-flex justify-content-center">
-                        <img src="/media/Drachenblut.png" width="120px", height="120px">
+                    <div class="col-4 d-flex justify-content-center">
+                        <img src="/media/tinchen.png" width="120px", height="120px">
+                    </div>
+                    <div class="col-4 d-flex justify-content-center">
+                        <img src="/media/drachenblut.png" width="120px", height="120px">
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-6 d-flex justify-content-center">
-                        <span style="font-size:12px">Developer: <strong class="low-sec">[DBL] Brain</strong></span>
+                    <div class="col-4 d-flex justify-content-center">
+                        <span style="font-size:12px"> Goon.DEFCON Developer: <br><strong class="low-sec">[DBL] Brain</strong></span>
                     </div>
-                    <div class="col-6 d-flex justify-content-center">
-                        <span style="font-size:12px">Provided by: <strong class="low-sec">Drachenblut - DBL</strong></span>
+                    <div class="col-4 d-flex justify-content-center">
+                        <span style="font-size:12px"> Ingame Parser Developer: <br><strong class="low-sec">[DBL] Tinchen</strong></span>
+                    </div>
+                    <div class="col-4 d-flex justify-content-center">
+                        <span style="font-size:12px">Provided by: <br><strong class="low-sec">Drachenblut - DBL</strong></span>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-4 d-flex justify-content-center">
+                        <img src="/media/king_dan.png" width="120px", height="120px">
+                    </div>
+                    <div class="col-4 d-flex justify-content-center">
+                        <img src="/media/ios_dev.jpg" width="120px", height="120px">
+                    </div>
+                    <div class="col-4 d-flex justify-content-center">
+                        <img src="/media/time_lords.png" width="120px", height="120px">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4 d-flex justify-content-center">
+                        <span style="font-size:12px">Android Developer: <br><strong class="low-sec">[TYME] King Dan</strong></span>
+                    </div>
+                    <div class="col-4 d-flex justify-content-center">
+                    </div>
+                    <div class="col-4 d-flex justify-content-center">
+                        <span style="font-size:12px">Provided by: <br><strong class="low-sec">Time Lords - TYME</strong></span>
                     </div>
                 </div>
                 <hr>
                 <div class="row">
                     <div class="col-12 d-flex justify-content-center">
-                        <span style="font-size:12px">Credits: <strong class="low-sec">[DBL] HolziSTL</strong>, <strong class="low-sec">[DBL] Dreixler</strong> and <strong class="low-sec">[DBL] Miruandu Margi</strong> for massiv support and testing during development. Without your feedback the tool would not be what it is now.</span>
+                        <span style="font-size:12px">Credits: <strong class="low-sec">[DBL] HolziSTL</strong>, <strong class="low-sec">[DBL] Dreixler</strong>, <strong class="low-sec">[DBL] Miruandu Margi</strong>, <strong class="low-sec">[DBL] Varlex</strong>, <strong class="low-sec">[DBL] Berlin Vader</strong>, <strong class="low-sec">[DBL] Käpt'n Dukey</strong> and <strong class="low-sec">[DBL] Laelas</strong> for massiv support and testing during development. Without your feedback the tool would not be what it is now.</span>
                     </div>
                 </div>
                 <hr>
@@ -45,6 +199,274 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn btn-outline-warning">Search</button> -->
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Search Modal -->
+<div class="modal fade" id="search_modal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="searchModalLabel">Do not know the system name? Search for it to figure out where it is located!</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        <div class="modal-body">
+            <form>
+                <div class="form-group">
+                    <label for="autocomplete">System name</label>
+                    <input type="text" class="form-control" id="autocomplete" aria-describedby="searchHelpTxt" autocomplete="off">
+                    <small id="searchHelpTxt" class="form-text text-muted">Enter system name it will autocomplete</small>
+                </div>
+                <button type="submit" class="btn btn-outline-warning" id="search_send">Search</button>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn btn-outline-warning">Search</button> -->
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- User Settings Modal -->
+<div class="modal fade" id="user_settings_modal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="settingsModalLabel">User settings</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        <div class="modal-body">
+            <form>
+                <h6>General Settings:</h6>
+                <div class="form-group">
+                    <label for="display_name">Your Display Name:</label>
+                    <input type="text" class="form-control" id="display_name" aria-describedby="display_nameTxt">
+                    <small id="display_nameTxt" class="form-text text-muted">By default your global Discord user name is used. In some cases you might want to overwrite it (e.g. contains RL name). Set it to your Goon Swarm individual Discord server user name. A change only is updated if you logout and login again.</small>
+                </div>
+                <div class="form-group">
+                    <label for="stars">Your Star Rating: <span id="stars_visual"></span></label>
+                    <input type="number" class="form-control" id="stars" aria-describedby="starsTxt" value="0" readonly>
+                    <small id="starsTxt" class="form-text text-muted">Your number of stars (10|50|100|250|500). Stars represent trust which you can increase by creating or confirming alerts. Your created alerts will then be marked with higher trust. Do not abuse this by creating dummy alerts, we will otherwise lock your user.</small>
+                </div>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="revert_y_axis">
+                    <label class="custom-control-label" for="revert_y_axis">Revert y-Axis for map scrolling (needed for trackpads users)</label>
+                  </div>
+                <hr>
+                <h6>Audio Alert settings:</h6>
+                <div class="form-group">
+                    <label for="settings_autocomplete">Your Home Base:</label>
+                    <input type="text" class="form-control" id="settings_autocomplete" aria-describedby="systemHelpTxt" autocomplete="off" value="319-3D" disabled>
+                    <small id="systemHelpTxt" class="form-text text-muted">Enter system name it will autocomplete. it is required to know where you are for audio alerts.</small>
+                </div>
+                <div class="form-group">
+                    <label for="jump_range">Jump Range for audio alerts:</label>
+                    <input type="number" min="1" max="20" class="form-control" id="jump_range" aria-describedby="jump_rangeTxt" value="5" disabled>
+                    <small id="jump_rangeTxt" class="form-text text-muted">Set a value between 1 and 20 for the jump range within you want to get audio alerts for reported enemies.</small>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="audio_alert" disabled>
+                    <label class="custom-control-label" for="audio_alert">Activate audio alert</label>
+                </div>
+                <hr>
+                <button type="submit" class="btn btn-outline-warning" id="settings_send">Save Settings</button>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn btn-outline-warning">Search</button> -->
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Correct Modal -->
+<div class="modal fade" id="correct_modal" tabindex="-1" aria-labelledby="correctModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="correctModalLabel">Correct</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        <div class="modal-body">
+            <form>
+                <div class="form-group">
+                    <pre id="message" class="text-danger"></pre>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="right_check">
+                        <label class="form-check-label" for="right_check">
+                            Label right position?
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-outline-warning" id="correct_send">Save</button>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn btn-outline-warning">Search</button> -->
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Report Enemy Modal -->
+<div class="modal fade" id="report_enemy_modal" tabindex="-1" aria-labelledby="enemyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="enemyModalLabel">Report Enemy</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        <div class="modal-body">
+            <form id="report" action="">
+                <h6 id="report_systemname"></h6>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend input-group-sm">
+                        <span class="input-group-text input-group-sm"><span style="width: 16px; height: 16px;" class="fas fa-question" aria-hidden="true"></span></span>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_unknown_count', 'sub', 10);">-10</a>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_unknown_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+                    </div>
+                    <input id="report_unknown_count" type="number" min="0" max="1000" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0">
+                    <div class="input-group-append input-group-sm">
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_unknown_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_unknown_count', 'add', 10);">+10</a>
+                    </div>
+                </div>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend input-group-sm">
+                        <span class="input-group-text input-group-sm"><img src="/media/frigate.png"></span></span>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_frigate_count', 'sub', 10);">-10</a>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_frigate_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+                    </div>
+                    <input id="report_frigate_count" type="number" min="0" max="1000" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0">
+                    <div class="input-group-append input-group-sm">
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_frigate_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_frigate_count', 'add', 10);">+10</a>
+                    </div>
+                </div>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend input-group-sm">
+                        <span class="input-group-text input-group-sm"><img src="/media/destroyer.png"></span></span>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_destroyer_count', 'sub', 10);">-10</a>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_destroyer_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+                    </div>
+                    <input id="report_destroyer_count" type="number" min="0" max="1000" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0">
+                    <div class="input-group-append input-group-sm">
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_destroyer_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_destroyer_count', 'add', 10);">+10</a>
+                    </div>
+                </div>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend input-group-sm">
+                        <span class="input-group-text input-group-sm"><img src="/media/cruiser.png"></span></span>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_cruiser_count', 'sub', 10);">-10</a>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_cruiser_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+                    </div>
+                    <input id="report_cruiser_count" type="number" min="0" max="1000" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0">
+                    <div class="input-group-append input-group-sm">
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_cruiser_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_cruiser_count', 'add', 10);">+10</a>
+                    </div>
+                </div>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend input-group-sm">
+                        <span class="input-group-text input-group-sm"><img src="/media/battlecruiser.png"></span></span>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bc_count', 'sub', 10);">-10</a>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bc_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+                    </div>
+                    <input id="report_bc_count" type="number" min="0" max="1000" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0">
+                    <div class="input-group-append input-group-sm">
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bc_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bc_count', 'add', 10);">+10</a>
+                    </div>
+                </div>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend input-group-sm">
+                        <span class="input-group-text input-group-sm"><img src="/media/battleship.png"></span></span>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bs_count', 'sub', 10);">-10</a>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_bs_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+                    </div>
+                    <input id="report_bs_count" type="number" min="0" max="1000" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0">
+                    <div class="input-group-append input-group-sm">
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bs_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_bs_count', 'add', 10);">+10</a>
+                    </div>
+                </div>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend input-group-sm">
+                        <span class="input-group-text input-group-sm"><img src="/media/miningbarge.png"></span></span>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_barge_count', 'sub', 10);">-10</a>
+                        <a class="btn btn-outline-light btn-sm text-danger" href="#" role="button" onclick="changeValue('report_barge_count', 'sub', 1);"><span class="fas fa-minus" aria-hidden="true"></span></a>
+                    </div>
+                    <input id="report_barge_count" type="number" min="0" max="1000" class="form-control form-control-sm text-center" placeholder="0" aria-label="ship count" aria-describedby="" value="0">
+                    <div class="input-group-append input-group-sm">
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_barge_count', 'add', 1);"><span class="fas fa-plus" aria-hidden="true"></span></a>
+                        <a class="btn btn-outline-light btn-sm text-success" href="#" role="button" onclick="changeValue('report_barge_count', 'add', 10);">+10</a>
+                    </div>
+                </div>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend">
+                    <span class="input-group-text" style="width: 34px">@</span>
+                    </div>
+                    <input id="report_location" type="text" class="form-control" placeholder="optional: e.g gate; planet 5" aria-label="location" aria-describedby="">
+                </div>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend">
+                    <span class="input-group-text" style="width: 34px">txt</span>
+                    </div>
+                    <input id="report_comment" type="text" class="form-control" placeholder="optional: e.g names or ships" aria-label="comment" aria-describedby="">
+                </div>
+                <br>
+                <div class="input-group input-group-sm">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="report_gatecamp">
+                        <label class="custom-control-label" for="report_gatecamp"><img src="/media/stargate.png">-Camp</label>&nbsp;
+                    </div>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="report_stationcamp">
+                        <label class="custom-control-label" for="report_stationcamp"><img src="/media/station.png">-Camp</label>&nbsp;
+                    </div>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="report_bubble">
+                        <label class="custom-control-label" for="report_bubble"><img src="/media/bubble.png"> Bubble</label>&nbsp;
+                    </div>
+                </div>
+                <br>
+                <span>Alert Expiration</span>
+                <br>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="ExpireOptions" id="5min" value="5">
+                    <label class="form-check-label" for="ExpireOptions1">5 min</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="ExpireOptions" id="15min" value="15">
+                    <label class="form-check-label" for="ExpireOptions2">15 min</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="ExpireOptions" id="30min" value="30">
+                    <label class="form-check-label" for="ExpireOptions3">30 min</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="ExpireOptions" id="60min" value="60">
+                    <label class="form-check-label" for="ExpireOptions4">60 min</label>
+                </div>
+                <br>
+                <div class="input-group input-group-sm justify-content-center">
+                    <button class="btn btn-outline-warning" type="submit" id="report_send" data-type="save">Save</button>
+                </div>
+            </form>
         </div>
         <div class="modal-footer">
           <!-- <button type="button" class="btn btn-outline-warning">Search</button> -->

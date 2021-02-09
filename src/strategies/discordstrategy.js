@@ -2,15 +2,27 @@
 const DiscordStrategy = require('passport-discord').Strategy;
 const passport = require('passport');
 const DiscordUser = require('../models/DiscordUser');
+const userSettings = require('../models/user_settings');
 
 passport.serializeUser((user, done) => {
     done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
-    const user = await DiscordUser.findById(id);
-    if (user)
-        done(null, user);
+    var user = await DiscordUser.findById(id);
+
+    if (user){
+        const userSetting = await userSettings.findOne({
+            discordId: user.discordId
+        });
+        if (userSetting.username != ''){
+            console.log(user.username, userSetting.username);
+            user.username = userSetting.username;
+            done(null, user);
+        } else {
+            done(null, user);
+        }
+    }
 });
 
 // Get User Data and Guild data from Discord and store in MongoDB
@@ -58,6 +70,17 @@ passport.use(new DiscordStrategy({
                 lastUpdate: new Date()
             });
             const savedUser = await newUser.save();
+            const newUserSetting = await userSettings.create({
+                discordId: profile.id,
+                username_original: profile.username,
+                username: '',
+                stars: 0,
+                revert_y_axis: false,
+                home_base: '319-3D',
+                jump_range: 5,
+                audio_alert: false
+            });
+            const savedUserSetting = await newUserSetting.save();
             done(null, savedUser);
         }
     } catch (err) {

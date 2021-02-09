@@ -4,7 +4,7 @@ body {
     overflow-y: hidden;
 }
 
-/* Initial Page only */
+/* Entry Page */
 .center-div {
     position: absolute;
     top: 50%;
@@ -15,14 +15,38 @@ body {
 /* Map Container full screen */
 #map_container {
     /* https://stackoverflow.com/questions/18588835/allow-a-div-to-cover-the-whole-page-instead-of-the-area-within-the-container */
-    position: fixed;
-    padding: 0;
-    margin: 0;
-    top: 100;
-    left: 0;
+    position: absolute;
+    padding: 0px;
+    margin: 0px;
+    top: 0px;
+    left: 0px;
     width: 100%;
     height: 100%;
     z-index: -1;
+}
+
+#map_buttons {
+    position: absolute;
+    top: 10px;
+    left: 0px;
+    width: 270px;
+}
+
+#user_buttons {
+    position: absolute;
+    top: 10px;
+    left: 0px;
+    width: 320px;
+}
+
+
+#map_legend {
+    position: fixed;
+    top: 100px;
+    left: -300px;
+    height: 225px;
+    width: 300px;
+    z-index: 1900;
 }
 
 /* Drop Down Smaller Text */
@@ -83,23 +107,16 @@ body {
     transition: 0.3s;
 }
 
-#map_legend {
-    position: absolute;
-    top: 100px;
-    left: -300px;
-    height: 225px;
-    width: 300px;
-    z-index: 1900;
-}
 
-#message_toggle{
+
+/* #message_toggle{
     position: absolute;
     bottom: 0px;
     left:  0px;
     height: 32px;
     width: 32px;
     z-index: 1900; 
-}
+} */
 #message_box {
     position: absolute;
     bottom: -200px;
@@ -176,11 +193,29 @@ nav {
     color: #d10f0f;
 }
 
-.friendly {
-    /* color: #3090ff; */
-    color: #1B61C3;
+
+.enemy {
+    fill: #d10f0f;
+}
+
+.enemy_background {
+    color: #801d1d;
 }
 
 .fleet {
     color: #5E097E;
 }
+
+.friendly {
+    color: #1B61C3;
+}
+
+.mining {
+    color: #e79f3a;
+}
+
+.current_region {
+    color: #1c2c3d;
+}
+
+

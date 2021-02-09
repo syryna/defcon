@@ -373,6 +373,20 @@ db.once('open', function () {
             };
             logger.app.log('info', `${region_id} SVG <- g <- line added for system links: ${counter}`);
 
+            // add alert path 
+            var alert_flow = background_layer.append("g")
+                .attr('data-node-type', 'alert_flow');
+                // alert_flow.selectAll(null)
+                // .data(solar_systems_data)                                                                                
+                // .enter() 
+                // .append('path')
+                // .attr("data-node-id", function (d) { return d.id })
+                // .attr("data-node-type", "alert_path")
+                // .style("stroke", "#d10f0f")
+                // .style("stroke-width", 4)
+                // .style("fill-opacity", 0.0); 
+            logger.app.log('info', `${region_id} SVG <- g <- alert flow for systems added`);
+
             // add solar system data to background layer
             var solar_systems = background_layer.append("g")
                 .attr('data-node-type', 'solar_systems');
@@ -410,6 +424,13 @@ db.once('open', function () {
             for (i in solar_systems_data){
                 var id = solar_systems_data[i].id;
                 solar_systems.select('g[data-node-id="' + id + '"]')
+                    .append('path')
+                    .attr("data-node-id", function (d) { return d.id })
+                    .attr("data-node-type", "alert_path")
+                    .style("stroke", "#d10f0f")
+                    .style("stroke-width", 2)
+                    .style("fill-opacity", 0.0);
+                solar_systems.select('g[data-node-id="' + id + '"]')
                     .append('circle')                                                                                               // attache a circle
                     .attr("cx", function (d) { return scale_x(d.center.x) })                                                               // add center x
                     .attr("cy", function (d) { return scale_y(-d.center.z) })                                                               // add center y
@@ -424,7 +445,7 @@ db.once('open', function () {
                     .style("fill-opacity", 1.0)                                                                                     // set transparency
                     .style("stroke", "#ffffff")                                                                                     // set line color
                     .style("stroke-width", 2)                                                                                       // set line thickness
-                    .style("fill", "#000000")                                                                                       // set the fill colour
+                    .style("fill", "#000000");                                                                                       // set the fill colour
             }                                                                
             logger.app.log('info', `${region_id} SVG <- g <- circle for solar systems added`);
 
