@@ -26,6 +26,7 @@ const socket    = io({
 });
 const w         = $('#map_container').width();
 const h         = $('#map_container').height();
+var menu_height = $('nav').outerHeight();
 const region    = "<%= query %>";
 var region_name = '';
 
@@ -414,11 +415,11 @@ $(function() {
     $('[role=button]').tooltip();                                               // assign tooltip to buttons
 
     if ($('nav').length){                                                       // position map buttons related to navbar
-        $("#map_buttons").stop().animate({top: '65px'});
-        $("#user_buttons").stop().animate({top: '105px'});
+        $("#map_buttons").stop().animate({top: menu_height + 10 + 'px'});
+        $("#user_buttons").stop().animate({top: menu_height + 50 + 'px'});
     } else {
-        $("#map_buttons").stop().animate({top: '10px'});
-        $("#user_buttons").stop().animate({top: '50px'});
+        $("#map_buttons").stop().animate({top: 10 + 'px'});
+        $("#user_buttons").stop().animate({top: 50 + 'px'});
     }
     
     var input = document.getElementById("autocomplete");                        // Autocomplete for Search Modal
@@ -644,7 +645,7 @@ $(function() {
         gatecamp            = $("#report_gatecamp").prop("checked");
         stationcamp         = $("#report_stationcamp").prop("checked");
         bubble              = $("#report_bubble").prop("checked");
-        expire              = $('input[name="ExpireOptions"]:checked').val();
+        expire              = $('input[name="ExpireOptions"]:checked').val();        
 
         const DateTime = luxon.DateTime;
         const dateExpire =  DateTime.local().plus({ minutes: expire }).toISO();
@@ -652,6 +653,7 @@ $(function() {
         message = {
             "id": node_id,
             "system": node_name,
+            "predecessors": [],
             "type": "enemy",
             "number": sum,
             "loc": at, 
@@ -680,6 +682,9 @@ $(function() {
             socket.emit('SAVE_MSG', message, user.username);
         }
         if(send_type == "update") {
+            const orig_alert = alert_data.filter(item => item._id == msg_id);
+            console.log(orig_alert);
+            message.predecessors = orig_alert[0].message.predecessors;
             socket.emit('EDIT_MSG', msg_id, message, user.username);
         }
         resetForm($('#report'));
@@ -732,6 +737,7 @@ $(function() {
     socket.on('GET_SYS_REG_DATA', function(msg){                                        //recieving ALL system and region data
             sys_reg_data = msg;  
             region_name = getRegionNameFromId(region);
+            $('#save_map_settings').attr("data-original-title", "Save current position and on/off settings for " + region_name);
     });
 
     socket.on('SEND_USER_SETTINGS', function(settings){                                  //recieving map settings

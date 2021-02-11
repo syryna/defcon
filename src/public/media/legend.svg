@@ -13,7 +13,7 @@
   <ellipse fill="#000000" stroke="#ffffff" stroke-width="1.5" cx="32.5" cy="20" id="svg_1" rx="15" ry="15"/>
   <text fill="#808080" stroke="#ffffff" stroke-width="0" x="70" y="26.5" id="svg_2" font-size="14" font-family="sans-serif" text-anchor="start" xml:space="preserve">Solar System</text>
   <line fill="none" stroke-width="2.5" x1="5" y1="47.5" x2="65" y2="47.5" id="svg_3" stroke-linejoin="null" stroke-linecap="null" stroke="#ffffff"/>
-  <text fill="#808080" stroke="#ffffff" stroke-width="0" x="70" y="52.5" id="svg_5" font-size="14" font-family="sans-serif" text-anchor="start" xml:space="preserve">inner Constellation</text>
+  <text fill="#808080" stroke="#ffffff" stroke-width="0" x="70" y="52.5" id="svg_5" font-size="14" font-family="sans-serif" text-anchor="start" xml:space="preserve">in Constellation</text>
   <line stroke-dasharray="20,20" fill="none" stroke-width="2.5" x1="5" y1="75.5" x2="65" y2="75.5" id="svg_6" stroke-linejoin="null" stroke-linecap="null" stroke="#ffffff"/>
   <text fill="#808080" stroke="#ffffff" stroke-width="0" x="70" y="79.5" id="svg_7" font-size="14" font-family="sans-serif" text-anchor="start" xml:space="preserve">cross Constellation</text>
   <line stroke-dasharray="5,5,20,5,5,20" fill="none" stroke-width="2.5" x1="5" y1="103.5" x2="65" y2="103.5" id="svg_8" stroke-linejoin="null" stroke-linecap="null" stroke="#39F"/>
@@ -39,8 +39,8 @@
   <text fill="#808080" stroke="#ffffff" stroke-width="0" x="333.75" y="227.5" id="svg_35" font-size="14" font-family="sans-serif" text-anchor="start" xml:space="preserve">Station</text>
   <text fill="#808080" stroke="#ffffff" stroke-width="0" x="243.75" y="272.5" id="svg_36" font-size="14" font-family="sans-serif" text-anchor="start" xml:space="preserve">Bubble</text>
   <rect fill="#d10f0f" stroke="#ffffff" stroke-width="2.5" stroke-opacity="null" x="8" y="146" width="50" height="25" id="svg_37"/>
-  <rect fill="#007fff" stroke="#ffffff" stroke-width="2.5" stroke-opacity="null" x="8" y="186" width="50" height="25" id="svg_38"/>
-  <rect fill="#00ff00" stroke="#ffffff" stroke-width="2.5" stroke-opacity="null" x="8" y="226" width="50" height="25" id="svg_39"/>
+  <rect fill="#0033ff" stroke="#ffffff" stroke-width="2.5" stroke-opacity="null" x="8" y="186" width="50" height="25" id="svg_38"/>
+  <rect fill="#007fff" stroke="#ffffff" stroke-width="2.5" stroke-opacity="null" x="8" y="226" width="50" height="25" id="svg_39"/>
   <rect fill="#e79f3a" stroke="#ffffff" stroke-width="2.5" stroke-opacity="null" x="8" y="266" width="50" height="25" id="svg_40"/>
   <text fill="#808080" stroke="#ffffff" stroke-width="0" x="66.75" y="163.5" id="svg_41" font-size="14" font-family="sans-serif" text-anchor="start" xml:space="preserve">NBSI (RED/NEUT)</text>
   <text fill="#808080" stroke="#ffffff" stroke-width="0" x="66.75" y="204.5" id="svg_42" font-size="14" font-family="sans-serif" text-anchor="start" xml:space="preserve">PvP Fleet (Alliance)</text>

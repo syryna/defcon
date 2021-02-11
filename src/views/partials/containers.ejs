@@ -43,12 +43,12 @@
         <button type="button" class="btn btn-outline-success btn-sm" id="toggle_trails" data-toggle="tooltip" data-placement="bottom" 
             title="Turn ON/OFF Alert Trails"><span class="fas fa-share-alt fa-fw" aria-hidden="true"></span></button> 
         <button type="button" class="btn btn-outline-warning btn-sm" id="save_map_settings" data-toggle="tooltip" data-placement="bottom" 
-            title="Save Positions and Labels for this region"><span class="far fa-save fa-fw" aria-hidden="true"></span></button>
+            title="Save current position and on/off settings for region"><span class="far fa-save fa-fw" aria-hidden="true"></span></button>
     </div>
     <div class="btn-group" role="group" aria-label="Second group">
         <!-- toggle button -->
         <a id="user_settings" class="btn btn-outline-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Change User Settings"><span class="fas fa-user-cog fa-fw" aria-hidden="true"></span></a>
-        <a id="array_dump" class="btn btn-outline-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show message array"><span class="fas fa-layer-group fa-fw" aria-hidden="true"></span></a>
+        <!-- <a id="array_dump" class="btn btn-outline-warning btn-sm" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Show message array"><span class="fas fa-layer-group fa-fw" aria-hidden="true"></span></a> -->
     </div>
 </div>
 
@@ -264,9 +264,9 @@
                 <hr>
                 <h6>Audio Alert settings:</h6>
                 <div class="form-group">
-                    <label for="settings_autocomplete">Your Home Base:</label>
+                    <label for="settings_autocomplete">Your Current System:</label>
                     <input type="text" class="form-control" id="settings_autocomplete" aria-describedby="systemHelpTxt" autocomplete="off" value="319-3D" disabled>
-                    <small id="systemHelpTxt" class="form-text text-muted">Enter system name it will autocomplete. it is required to know where you are for audio alerts.</small>
+                    <small id="systemHelpTxt" class="form-text text-muted">Enter system name it will autocomplete. It is required to know where you are for audio alerts. You can change the system whenever you want.</small>
                 </div>
                 <div class="form-group">
                     <label for="jump_range">Jump Range for audio alerts:</label>

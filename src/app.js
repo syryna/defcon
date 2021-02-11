@@ -346,7 +346,8 @@ io.on('connection', (socket) => {
                     var MessageActivity = savedMessageActivity.toObject();
                     MessageActivity.msg = savedMessage;
                     // send also to firebase
-                    //sendFireBaseMsg(process.env.MIKE, msg.system, msg.number);
+                    sendFireBaseMsg(process.env.TAB, msg.system, msg.number);
+                    sendFireBaseMsg(process.env.MIKE, msg.system, msg.number);
                     //sendFireBaseMsg(process.env.DAN, msg.system, msg.number);
                     findMessageData().then((messages) => {
                         var message_history = [];
@@ -658,6 +659,8 @@ function sendFireBaseMsg(reciever, system, count) {
         },
         "direct_boot_ok": true
     };
+
+    console.log("message", body);
 
     fetch('https://fcm.googleapis.com/fcm/send', {
         method: 'post',

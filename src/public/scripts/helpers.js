@@ -1,9 +1,9 @@
 /* Helper functions */
 function showLegend(){
     if ($('nav').length){
-        $("#map_legend").css("top", "145px");
+        $("#map_legend").css("top", menu_height + 120 + "px");
     } else {
-        $("#map_legend").css("top", "90px");
+        $("#map_legend").css("top", 120 + "px");
     }
     $("#map_legend").stop().animate({left: '0px'});
     $('#toggle_legend').removeClass("btn-outline-danger");
@@ -13,9 +13,9 @@ function showLegend(){
 
 function hideLegend(){
     if ($('nav').length){
-        $("#map_legend").css("top", "145px");
+        $("#map_legend").css("top", menu_height + 120 + "px");
     } else {
-        $("#map_legend").css("top", "90px");
+        $("#map_legend").css("top", 120 + "px");
     }
     $("#map_legend").stop().animate({left: '-300px'});
     $('#toggle_legend').removeClass("btn-outline-success");
@@ -25,7 +25,6 @@ function hideLegend(){
 
 function showMessageBox(){
     $("#message_box").stop().animate({bottom: '0px'});
-    //$("#message_toggle").stop().animate({bottom: '200px'}); 
     $('#toggle_message_box').removeClass("btn-outline-danger");
     $('#toggle_message_box').addClass("btn-outline-success");
     user_map_settings.show_message_box = 1;
@@ -33,7 +32,6 @@ function showMessageBox(){
 
 function hideMessageBox(){
     $("#message_box").stop().animate({bottom: '-200px'});
-    //$("#message_toggle").stop().animate({bottom: '0px'}); 
     $('#toggle_message_box').removeClass("btn-outline-success");
     $('#toggle_message_box').addClass("btn-outline-danger");
     user_map_settings.show_message_box = 0;
@@ -213,7 +211,7 @@ function fillPopover(msg){
         });
         $('#pop_buttons').html(function(){
             var content = '';
-            content = content + '<a data-id="delete_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-danger btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Archive Report"><span class="fas fa-trash-alt" aria-hidden="true"> Archive</span></a>';
+            content = content + '<a data-id="delete_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-danger btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Delete Report"><span class="fas fa-trash-alt" aria-hidden="true"> Delete</span></a>';
             content = content + '<a data-id="edit_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Edit Report"><span class="fas fa-edit" aria-hidden="true"> Edit</span></a>';
             content = content + '<a data-id="move_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-warning btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Move Report"><span class="fas fa-expand-arrows-alt" aria-hidden="true"> Move</span></a>';
             content = content + '<a data-id="confirm_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-success btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Confirm Report"><span class="fas fa-user-check" aria-hidden="true"> Confirm</span></a>';
@@ -241,7 +239,7 @@ function fillPopover(msg){
         $('#pop_ships').html('');
         $('#pop_buttons').html(function(){
             var content = '';
-            content = content + '<a data-id="delete_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-danger btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Archive Report"><span class="fas fa-trash-alt" aria-hidden="true"> Archive</span></a>';
+            content = content + '<a data-id="delete_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-danger btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Delete Report"><span class="fas fa-trash-alt" aria-hidden="true"> Delete</span></a>';
             content = content + '<a data-id="confirm_report" data-msg-id="' + msg._id + '" data-node-id="' + msg.message.id + '" class="btn btn-outline-secondary btn-sm" style="font-size:10px" href="#" role="button" data-toggle="tooltip" data-placement="bottom" title="Confirm Report"><span class="fas fa-user-check" aria-hidden="true"> Confirm</span></a>';
             return content;
         });
@@ -368,7 +366,7 @@ function updateMessageBox(alert_act_data){
                 action = '<span class="low-sec">[EDIT]</span>';
                 break;
             case "ARCHIEVED":
-                action = '<span class="null-sec">[ARCH]</span>';
+                action = '<span class="null-sec">[DEL]</span>';
                 break;
             case "MOVED":
                 action = '<span class="low-sec">[MOVE]</span>';
