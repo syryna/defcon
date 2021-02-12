@@ -346,9 +346,7 @@ io.on('connection', (socket) => {
                     var MessageActivity = savedMessageActivity.toObject();
                     MessageActivity.msg = savedMessage;
                     // send also to firebase
-                    sendFireBaseMsg(process.env.TAB, msg.system, msg.number);
-                    sendFireBaseMsg(process.env.MIKE, msg.system, msg.number);
-                    //sendFireBaseMsg(process.env.DAN, msg.system, msg.number);
+                    sendFireBaseMsg(msg.system, msg.number, msg.comment)
                     findMessageData().then((messages) => {
                         var message_history = [];
                         if (messages.length == 0) {
@@ -388,6 +386,8 @@ io.on('connection', (socket) => {
                     logger.app.log('info', `MongoDB   - [CREATE]:       ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
                     var MessageActivity = savedMessageActivity.toObject();
                     MessageActivity.msg = savedMessage;
+                    // send also to firebase
+                    sendFireBaseMsg(msg.system, msg.number, "CLEAN SYSTEM")
                     findMessageData().then((messages) => {
                         var message_history = [];
                         if (messages.length == 0) {
@@ -425,6 +425,8 @@ io.on('connection', (socket) => {
                 logger.app.log('info', `MongoDB   - [EDIT]:         ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
                 var MessageActivity = savedMessageActivity.toObject();
                 MessageActivity.msg = updatedMessage;
+                // send also to firebase
+                sendFireBaseMsg(msg.system, msg.number, msg.comment)
                 findMessageData().then((messages) => {
                     var message_history = [];
                     if (messages.length == 0) {
@@ -515,6 +517,8 @@ io.on('connection', (socket) => {
                         logger.app.log('info', `MongoDB   - [MOVE]:         ${username} - ${savedMessageActivity._id} saved in (message_activities)`);
                         var MessageActivity = savedMessageActivity.toObject();
                         MessageActivity.msg = savedMessage;
+                        // send also to firebase
+                        sendFireBaseMsg(msg.system, msg.number, msg.comment)
                         findMessageData().then((messages) => {
                             var message_history = [];
                             if (messages.length == 0) {
@@ -649,24 +653,41 @@ schedule.scheduleJob('*/1 * * * *', function () {
 
 
 // send messages to FireBase for Andriod and IOs devices
-function sendFireBaseMsg(reciever, system, count) {
+function sendFireBaseMsg(system, count, names) {
 
-    const body = {
+/*     const body = {
         "to": reciever,
         "data": {
             "system": system,
             "count": count
         },
         "direct_boot_ok": true
-    };
+    }; */
 
-    console.log("message", body);
-
+/* 
     fetch('https://fcm.googleapis.com/fcm/send', {
         method: 'post',
         body:    JSON.stringify(body),
         headers: { 
             'Content-Type': 'application/json',
+            'Authorization': process.env.MESSAGE_KEY
+        },
+    })
+    .then(res => res.json())
+    .then(json => logger.app.log('info', `firebase  - [-MSG-]:        RESULT - ${JSON.stringify(json)}`));   */
+
+    const body = {
+        "system": system,
+        "count": count,
+        "name": names
+    };
+
+    fetch('https://pantheon-defcon-302323.appspot.com/alerts', {
+        method: 'post',
+        body:    JSON.stringify(body),
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'Authorization': process.env.MESSAGE_KEY
         },
     })
