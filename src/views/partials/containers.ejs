@@ -22,9 +22,9 @@
     <div class="btn-group" role="group" aria-label="Third group">
         <!-- switch UI -->
         <% if (flavor == 'mobile') { %>
-            <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>" role="button" data-toggle="tooltip" data-placement="bottom" title="Return to Desktop Version"><span class="fas fa-desktop fa-fw" aria-hidden="true"></span></a>
+            <a id="device_toggle" class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>" role="button" data-toggle="tooltip" data-placement="bottom" title="Return to Desktop Version"><span class="fas fa-desktop fa-fw" aria-hidden="true"></span></a>
         <% } else {%> 
-            <a class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>&flavor=mobile" role="button" data-toggle="tooltip" data-placement="bottom" title="Open Clean Window for Mobiles"><span class="fas fa-tablet-alt fa-fw" aria-hidden="true"></span></a>
+            <a id="device_toggle" class="btn btn-outline-warning btn-sm" href="/dashboard/region?id=<%= query %>&flavor=mobile" role="button" data-toggle="tooltip" data-placement="bottom" title="Open Clean Window for Mobiles"><span class="fas fa-tablet-alt fa-fw" aria-hidden="true"></span></a>
         <%}%> 
     </div>
 </div>

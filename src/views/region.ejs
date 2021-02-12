@@ -340,6 +340,10 @@ var xml = d3.xml('/media/<%= query %>.svg').mimeType('image/svg+xml').get(functi
         $(".modal-footer").html('');
     });
 
+    $("#save_map_settings, #device_toggle").on('inserted.bs.tooltip', function () {
+        $("body div.tooltip-inner").css("max-width", "500px");
+    });
+
     $('#user_settings').on('click', function() {                             // open user settings modal
         $('#display_name').val(user_settings.username);
         $('#stars').val(user_settings.stars);
