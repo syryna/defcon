@@ -1,13 +1,6 @@
 <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
-  <a class="navbar-brand" href="/dashboard">
-    <% guilds.forEach(guild => { %>
-    <% if (guild.name == whitelistAlliance) { %>
-    <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" width="30" height="30"
-      class="d-inline-block align-top" alt="" loading="lazy">
-    &nbsp; <%= guild.name %>
-    <% } %>
-    <% }) %>
-    - <span class="badge badge-danger">DEFCON</span>
+  <a class="navbar-brand" href="/dashboard/overview">
+    <img src="/media/banner.png">
   </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -15,9 +8,6 @@
 
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
-      <li class="nav-item" id="universe">
-        <a class="nav-link" href="/dashboard/overview">Universe</a>
-      </li>
       <li class="nav-item dropdown" id="intel">
         <a class="nav-link dropdown-toggle" href="#" id="intelDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Intel
@@ -36,16 +26,16 @@
         <a class="nav-link disabled" href="#">Sov</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link disabled" href="#">Fleet Ops</a>
+        <a class="nav-link disabled" href="#">Fleet</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link disabled" href="#">PvE Ops</a>
+        <a class="nav-link disabled" href="#">PvE</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link disabled" href="#">Industry Ops</a>
+        <a class="nav-link disabled" href="#">Industry</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link disabled" href="#">PI Tool</a>
+        <a class="nav-link disabled" href="#">PI</a>
       </li>
       <li class="nav-item">
         <a class="nav-link disabled" href="#">Reporting</a>
