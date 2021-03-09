@@ -694,3 +694,18 @@ function sendFireBaseMsg(system, count, names) {
     .then(res => res.json())
     .then(json => logger.app.log('info', `firebase  - [-MSG-]:        RESULT - ${JSON.stringify(json)}`));  
 }
+
+
+
+
+// You might want to store this in an environment variable or something
+const token = 'Nzg1MDc0MDQ2ODYxNDQzMDgy.X8yjLg.bDlQouZ0G8JeH3tjx1FsAOyNsP0';
+
+fetch('https://discord.com/api/guilds/772942240338935829/members/298881908715290625', {
+    method: 'get',
+    headers: { 
+        Authorization: `Bot ${token}`
+    },
+})
+.then(res => res.json())
+.then(json => logger.app.log('info', `DISCORD - [-MSG-]:        RESULT - ${JSON.stringify(json)}`)); 

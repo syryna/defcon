@@ -117,6 +117,8 @@ router.post('/api/add', (req, res) => {
 
     var dateExpire = new Date();
     dateExpire.setMinutes(dateExpire.getMinutes() + 5);
+
+    console.log(req.body);
     
     res.json({
         recievedRequest: req.body,
