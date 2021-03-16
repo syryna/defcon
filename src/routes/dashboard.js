@@ -30,7 +30,7 @@ function isAuthorized(req, res, next) {
 // add a socket client to send messages from API via socket to server
 const PORT = process.env.PORT || 3001;
 if(process.env.ENV == 'PROD'){
-    var socket = io.connect(`https:/localhost:${PORT}`, {reconnect: true, secure: true});
+    var socket = io.connect(`https://goon-defcon.com:${PORT}`, {reconnect: true});
 } else {
     var socket = io.connect(`http://localhost:${PORT}`, {reconnect: true});
 }
