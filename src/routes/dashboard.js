@@ -185,7 +185,7 @@ router.post('/api/add', (req, res) => {
             "loc": '', 
             "comment": players, 
             "shiptype" : {
-                "u": 0,
+                "u": number,
                 "f": 0,
                 "d": 0,
                 "c": 0,
