@@ -1,6 +1,8 @@
 // Modules
 const router = require('express').Router();
 const logger = require('../logger/logger');
+const mongoose = require('mongoose');
+var io = require('socket.io-client');
 
 const inv_solar_systems = require('../models/inv_solar_systems');
 
@@ -24,6 +26,10 @@ function isAuthorized(req, res, next) {
         res.redirect('/');
     }
 }
+
+// add a socket client to send messages from API via socket to server
+const PORT = process.env.PORT || 3001;
+var socket = io.connect(`http://localhost:${PORT}`, {reconnect: true});
 
 // common DB functions
 var all_solar_system_data;
@@ -49,7 +55,11 @@ function getSystemIDFromName(name){
             return data.id;
         } 
     });
-    return system_found.id;
+    if(typeof system_found === 'undefined') {
+        return null;
+    } else {
+        return system_found.id;
+    }
 }
 
 router.get('/overview', isAuthorized, (req, res) => {
@@ -113,18 +123,50 @@ router.post('/api/add', (req, res) => {
     const name = req.body.systemName;
     const sys_id = getSystemIDFromName(name);
     const number = req.body.number;
-    const players = req.body.players
+    var players = req.body.players
 
-    var dateExpire = new Date();
-    dateExpire.setMinutes(dateExpire.getMinutes() + 5);
+    // validation of input
+    var err_count = 0;
+    var err_msg ='';
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(msg_id)){
+        err_count++;
+        err_msg = err_msg + 'Invalid MongoDB ObjectId: ' + msg_id + '!; ';
+    } 
+    // validate allowed Type
+    if (type !== 'ADD'){
+        err_count++;
+        err_msg = err_msg + 'Invalid Type: ' + type + '!; ';
+    } 
+    // validate system id exists
+    if (!sys_id){
+        err_count++;
+        err_msg = err_msg + 'Invalid System: ' + name + '!; ';
+    } 
+    // validate number 0 or greater
+    if (number < 0 || isNaN(number) || !parseInt(number)){
+        err_count++;
+        err_msg = err_msg + 'Invalid Number, must be 0 or greater and Integer: ' + number + ' (' + typeof number + ')!; ';
+    } 
+    // validate players not empty
+    if ( players.length == 0 ){
+        err_count++;
+        err_msg = err_msg + 'Invalid Players, must at least contain 1 element: ' + players + ' (' + players.length + ')!; ';
+    } 
+    // convert players array to comma-seperated list of players
+    players = players.join(", ");
 
-    console.log(req.body);
-    
-    res.json({
-        recievedRequest: req.body,
-        messageID: msg_id,
-        messageType: type,
-        createdMessage: {
+    // Output
+    if (err_count > 0){
+        res.json({
+            "error_count": err_count,
+            "error_messages": err_msg
+        });
+    } else {
+        var dateExpire = new Date();
+        dateExpire.setMinutes(dateExpire.getMinutes() + 5);
+        
+        const message = {
             "id": sys_id,
             "system": name,
             "type": "enemy",
@@ -144,13 +186,19 @@ router.post('/api/add', (req, res) => {
             "stationcamp": false,
             "bubble": false,
             "dateExpire": dateExpire,
-            "discordId": 'deine BOT ID',
-            "avatar": 'deine Avatar ID',
-            "username": 'dein BOT Username',
-            "discriminator": 'dein Bot Discriminator ID',
+            "discordId": '803379489568587836',
+            "avatar": null,
+            "username": 'Bot-Test',
+            "discriminator": '5589',
             "stars": 500
         }
-    });
+
+        res.json(message);
+
+        socket.emit('SAVE_MSG', message, 'Bot-Test');
+    }
+    
+    
 });
 
 module.exports = router;
