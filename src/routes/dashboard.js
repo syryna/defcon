@@ -29,7 +29,12 @@ function isAuthorized(req, res, next) {
 
 // add a socket client to send messages from API via socket to server
 const PORT = process.env.PORT || 3001;
-var socket = io.connect(`http://localhost:${PORT}`, {reconnect: true});
+if(process.env.ENV == 'PROD'){
+    var socket = io.connect(`https://localhost:${PORT}`, {reconnect: true});
+} else {
+    var socket = io.connect(`http://localhost:${PORT}`, {reconnect: true});
+}
+
 
 // common DB functions
 var all_solar_system_data;
