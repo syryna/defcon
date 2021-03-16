@@ -34,6 +34,9 @@ if(process.env.ENV == 'PROD'){
 } else {
     var socket = io.connect(`http://localhost:${PORT}`, {reconnect: true});
 }
+socket.on('connect', function (socket) {
+    console.log('API connected to socket');
+});
 
 
 // common DB functions
