@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 var io = require('socket.io-client');
 
 const inv_solar_systems = require('../models/inv_solar_systems');
+const messages = require('../models/messages');
 
 function isAuthorized(req, res, next) {
     if (req.user) {
@@ -44,6 +45,7 @@ socket.on('connect_error', function (err) {
 
 // common DB functions
 var all_solar_system_data;
+var message_history = [];
 
 async function findSolarSystemData() {                      // read solar system and region data 
     const all_solar_systems_data = await inv_solar_systems.aggregate([
@@ -54,9 +56,24 @@ async function findSolarSystemData() {                      // read solar system
     return all_solar_systems_data;
 }
 
+async function findBotMessageData() {                          // reads all active Messages and returns them all
+    const message_data = await messages.find(
+        { "usernameCreated": "Bot-Test" }
+    ).sort(
+         [['dateChanged', 'desc']] 
+    ).limit(100);
+    return message_data;
+}
+
 // read solar system data from DB
 findSolarSystemData().then((solar_system_data) => {
     all_solar_system_data = solar_system_data;
+});
+
+findBotMessageData().then((messages) => {
+    for (i in messages) {
+        message_history.push(messages[i]);
+    }
 });
 
 // helper to get SystemID
@@ -210,6 +227,20 @@ router.post('/api/add', (req, res) => {
     }
     
     
+});
+
+
+router.get('/api/list', (req, res) => {
+    const msgObject = {
+        method: req.method,
+        url: req.originalUrl,
+        res_status: res.statusCode
+    };
+    logger.http.log('info', JSON.stringify(msgObject));
+
+    res.render('api_list', {
+        data: message_history,
+    });
 });
 
 module.exports = router;

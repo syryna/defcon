@@ -1,0 +1,16 @@
+<p>Last 100 messages from Bot-Test:</p>
+
+<table style="border: 1px solid black">
+    <tr>
+        <th style="border: 1px solid black">dateCreated</td>
+        <th style="border: 1px solid black">usernameCreated</td>
+        <th style="border: 1px solid black">message</td>
+    </tr>
+    <% for(var i=0; i < data.length; i++) { %>
+       <tr>
+         <td style="border: 1px solid black"><%= data[i].dateCreated %></td>
+         <td style="border: 1px solid black"><%= data[i].usernameCreated %></td>
+         <td style="border: 1px solid black"><%= JSON.stringify(data[i].message) %></td>
+       </tr>
+    <% } %>
+</table>
