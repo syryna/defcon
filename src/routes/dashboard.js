@@ -12,7 +12,7 @@ function isAuthorized(req, res, next) {
      
         var part_of_alliance = false;
         for (i in req.user.guilds){ // user in alliance?
-            if (req.user.guilds[i].name == process.env.DISCORD_ALLIANCE_SERVER_NAME) {
+            if (req.user.guilds[i].id == process.env.DISCORD_ALLIANCE_SERVER_ID) {
                 part_of_alliance = true;
             }
         }

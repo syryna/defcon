@@ -513,35 +513,35 @@ function stars(star_amount){
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
     }
-    if (star_amount > 10){
+    if (star_amount >= 10){
         content =           '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
     }
-    if (star_amount > 50){
+    if (star_amount >= 50){
         content =           '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
     }
-    if (star_amount > 100){
+    if (star_amount >= 100){
         content =           '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
     }
-    if (star_amount > 250){
+    if (star_amount >= 250){
         content =           '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="far fa-star low-sec" aria-hidden="true"></span>';
     }
-    if (star_amount > 500){
+    if (star_amount >= 500){
         content =           '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
         content = content + '<span class="fas fa-star low-sec" aria-hidden="true"></span>';
